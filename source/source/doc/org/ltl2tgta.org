@@ -1,0 +1,31 @@
+# -*- coding: utf-8 -*-
+#+TITLE: =ltl2tgta=
+#+DESCRIPTION: Spot command-line tool for translating LTL into Transition-based Generalized Testing Automata.
+#+INCLUDE: setup.org
+#+HTML_LINK_UP: tools.html
+#+PROPERTY: header-args:sh :results verbatim :exports code
+
+=ltl2tgta= was a tool introduced in Spot 1.0 to generates various
+forms of Testing Automata, i.e., automata that observe the /changes/
+of atomic propositions, not their values.
+
+For more details, read [[https://www.lrde.epita.fr/~adl/dl/adl/bensalem.12.topnoc.pdf][*Model checking using generalized testing
+automata*]], /Ala Eddine Ben Salem/, /Alexandre Duret-Lutz/, and
+/Fabrice Kordon/, in Transactions on Petri Nets and Other Models of
+Concurrency (ToPNoC VI), LNCS 7400, p. 94--112, 2012.
+
+The code supporting this tool had some minimal update for Spot 2.0,
+but was still the least tested/covered code in the whole project, and
+required regular touch-ups to accommodate new compiler versions.
+Since it had no known uses (outside of a few publication about testing
+automata), we removed it from Spot to lower the maintenance burden.
+If you are interested in testing automata, and want to try this tool,
+please download a version prior to Spot 2.15.  You are also welcome
+to get in touch and make a case for the reintegration of this tool.
+
+#  LocalWords:  ltl tgta num toc Automata automata GraphViz UTF Gb na
+#  LocalWords:  Geldenhuys tgba SRC init invis nb Acc augb sed png fn
+#  LocalWords:  cmdline Tpng txt Büchi livelock gba gta GFa GFb TGTAs
+#  LocalWords:  gfagfb topnoc Eddine SALEM's ToPNoC LNCS eval setenv
+#  LocalWords:  concat getenv setq utf html args svg TGBAs Alexandre
+#  LocalWords:  Duret Lutz Fabrice Kordon Petri

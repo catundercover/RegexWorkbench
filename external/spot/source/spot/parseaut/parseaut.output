@@ -1,0 +1,3691 @@
+Grammar
+
+    0 $accept: aut "end of file"
+
+    1 aut: aut-1
+
+    2 $@1: ε
+
+    3 aut: "#line" $@1 aut
+    4    | "end of file"
+    5    | error "end of file"
+    6    | error aut-1
+
+    7 aut-1: hoa
+    8      | never
+    9      | lbtt
+   10      | dstar
+   11      | pgame
+
+   12 hoa: header "--BODY--" body "--END--"
+   13    | "HOA:" error "--END--"
+
+   14 string_opt: ε
+   15           | "string"
+
+   16 BOOLEAN: 't'
+   17        | 'f'
+
+   18 header: format-version header-items
+
+   19 version: "identifier"
+
+   20 $@2: ε
+
+   21 format-version: "HOA:" $@2 version
+
+   22 controllable-aps: ε
+   23                 | controllable-aps "integer"
+
+   24 $@3: ε
+
+   25 aps: "AP:" "integer" $@3 ap-names
+
+   26 header-items: ε
+   27             | header-items header-item
+
+   28 header-item: "States:" "integer"
+   29            | "Start:" init-state-conj-2
+   30            | "Start:" state-num
+   31            | aps
+   32            | "controllable-AP:" controllable-aps
+
+   33 $@4: ε
+
+   34 header-item: "Alias:" "alias name" $@4 label-expr
+
+   35 $@5: ε
+
+   36 header-item: "Acceptance:" "integer" $@5 acceptance-cond
+   37            | "acc-name:" "identifier" acc-spec
+   38            | "tool:" "string" string_opt
+   39            | "name:" "string"
+   40            | "properties:" properties
+
+   41 $@6: ε
+
+   42 header-item: "spot.highlight.edges:" $@6 highlight-edges
+
+   43 $@7: ε
+
+   44 header-item: "spot.highlight.states:" $@7 highlight-states
+
+   45 $@8: ε
+
+   46 header-item: "spot.state-player:" $@8 state-player
+   47            | "header name" header-spec
+   48            | error
+
+   49 ap-names: ε
+   50         | ap-names ap-name
+
+   51 ap-name: "string"
+
+   52 acc-spec: ε
+   53         | acc-spec BOOLEAN
+   54         | acc-spec "integer"
+   55         | acc-spec "identifier"
+
+   56 properties: ε
+   57           | properties "identifier"
+   58           | properties '!' "identifier"
+
+   59 highlight-edges: ε
+   60                | highlight-edges "integer" "integer"
+
+   61 highlight-states: ε
+   62                 | highlight-states "integer" "integer"
+
+   63 state-player: ε
+   64             | state-player "integer"
+
+   65 header-spec: ε
+   66            | header-spec BOOLEAN
+   67            | header-spec "integer"
+   68            | header-spec "string"
+   69            | header-spec "identifier"
+
+   70 state-conj-2: checked-state-num '&' checked-state-num
+   71             | state-conj-2 '&' checked-state-num
+
+   72 init-state-conj-2: state-num '&' state-num
+   73                  | init-state-conj-2 '&' state-num
+
+   74 label-expr: 't'
+   75           | 'f'
+   76           | "integer"
+   77           | "alias name"
+   78           | '!' label-expr
+   79           | label-expr '&' label-expr
+   80           | label-expr '|' label-expr
+   81           | '(' label-expr ')'
+
+   82 acc-set: "integer"
+
+   83 acceptance-cond: "identifier" '(' acc-set ')'
+   84                | "identifier" '(' '!' acc-set ')'
+   85                | '(' acceptance-cond ')'
+   86                | acceptance-cond '&' acceptance-cond
+   87                | acceptance-cond '|' acceptance-cond
+   88                | 't'
+   89                | 'f'
+
+   90 body: states
+
+   91 state-num: "integer"
+
+   92 checked-state-num: state-num
+
+   93 states: ε
+   94       | states state
+
+   95 state: state-name labeled-edges
+   96      | state-name unlabeled-edges
+   97      | error
+
+   98 state-name: "State:" state-label_opt checked-state-num string_opt state-acc_opt
+
+   99 label: '[' label-expr ']'
+  100      | BDD
+  101      | '[' error ']'
+
+  102 state-label_opt: ε
+  103                | label
+
+  104 trans-label: label
+
+  105 acc-sig: '{' acc-sets '}'
+  106        | '{' error '}'
+
+  107 acc-sets: ε
+  108         | acc-sets acc-set
+
+  109 state-acc_opt: ε
+  110              | acc-sig
+
+  111 trans-acc_opt: ε
+  112              | acc-sig
+
+  113 labeled-edges: ε
+  114              | some-labeled-edges
+
+  115 some-labeled-edges: labeled-edge
+  116                   | some-labeled-edges labeled-edge
+  117                   | some-labeled-edges incorrectly-unlabeled-edge
+
+  118 incorrectly-unlabeled-edge: checked-state-num trans-acc_opt
+
+  119 labeled-edge: trans-label checked-state-num trans-acc_opt
+  120             | trans-label state-conj-checked trans-acc_opt
+
+  121 state-conj-checked: state-conj-2
+
+  122 unlabeled-edges: unlabeled-edge
+  123                | unlabeled-edges unlabeled-edge
+  124                | unlabeled-edges incorrectly-labeled-edge
+
+  125 unlabeled-edge: checked-state-num trans-acc_opt
+  126               | state-conj-checked trans-acc_opt
+
+  127 incorrectly-labeled-edge: trans-label unlabeled-edge
+
+  128 dstar: dstar_type "v2" "explicit" dstar_header "---" dstar_states "end of DSTAR automaton"
+  129      | dstar_type error "end of DSTAR automaton"
+
+  130 dstar_type: "DRA"
+  131           | "DSA"
+
+  132 dstar_header: dstar_sizes
+
+  133 dstar_sizes: ε
+  134            | dstar_sizes error
+  135            | dstar_sizes "Acceptance-Pairs:" "integer"
+  136            | dstar_sizes "States:" "integer"
+  137            | dstar_sizes "Start:" "integer"
+  138            | dstar_sizes aps
+
+  139 dstar_state_id: "State:" "integer" string_opt
+
+  140 sign: '+'
+  141     | '-'
+
+  142 dstar_accsigs: ε
+  143              | dstar_accsigs sign "integer"
+
+  144 dstar_state_accsig: "Acc-Sig:" dstar_accsigs
+
+  145 dstar_transitions: ε
+  146                  | dstar_transitions "integer"
+
+  147 dstar_states: ε
+  148             | dstar_states error
+  149             | dstar_states dstar_state_id dstar_state_accsig dstar_transitions
+
+  150 pgamestart: "start of PGSolver game"
+
+  151 pgame: pgamestart pgame_nodes "end of PGSolver game"
+  152      | pgamestart error "end of PGSolver game"
+
+  153 pgame_nodes: pgame_node ';'
+  154            | pgame_nodes pgame_node ';'
+
+  155 pgame_succs: "integer"
+  156            | pgame_succs ',' "integer"
+
+  157 pgame_node: "integer" "integer" "integer" pgame_succs string_opt
+
+  158 $@9: ε
+
+  159 never: "never" $@9 '{' nc-states '}'
+
+  160 nc-states: ε
+  161          | nc-state
+  162          | nc-states ';' nc-state
+  163          | nc-states ';'
+
+  164 nc-one-ident: "identifier" ':'
+
+  165 nc-ident-list: nc-one-ident
+  166              | nc-ident-list nc-one-ident
+
+  167 nc-transition-block: "if" nc-transitions "fi"
+  168                    | "do" nc-transitions "od"
+
+  169 nc-state: nc-ident-list "skip"
+  170         | nc-ident-list
+  171         | nc-ident-list "false"
+  172         | nc-ident-list nc-transition-block
+
+  173 nc-transitions: ε
+  174               | nc-transitions nc-transition
+
+  175 nc-formula-or-ident: "boolean formula"
+  176                    | "identifier"
+
+  177 nc-formula: nc-formula-or-ident
+  178           | "false"
+
+  179 nc-opt-dest: ε
+  180            | "->" "goto" "identifier"
+  181            | "->" "assert" "boolean formula"
+
+  182 nc-src-dest: nc-formula nc-opt-dest
+
+  183 nc-transition: ':' ':' "atomic" '{' nc-src-dest '}'
+  184              | ':' ':' nc-src-dest
+
+  185 lbtt: lbtt-header lbtt-body "-1"
+  186     | lbtt-header-states "acceptance sets for empty automaton"
+
+  187 lbtt-header-states: "LBTT header"
+
+  188 lbtt-header: lbtt-header-states "state acceptance"
+  189            | lbtt-header-states "integer"
+
+  190 lbtt-body: lbtt-states
+
+  191 lbtt-states: ε
+  192            | lbtt-states lbtt-state lbtt-transitions
+
+  193 lbtt-state: "state number" "integer" lbtt-acc
+
+  194 lbtt-acc: ε
+  195         | lbtt-acc "acceptance set"
+
+  196 lbtt-guard: "string"
+
+  197 lbtt-transitions: ε
+  198                 | lbtt-transitions "destination number" lbtt-acc lbtt-guard
+
+
+Terminals, with rules where they appear
+
+    "end of file" (0) 0 4 5
+    '!' (33) 58 78 84
+    '&' (38) 70 71 72 73 79 86
+    '(' (40) 81 83 84 85
+    ')' (41) 81 83 84 85
+    '+' (43) 140
+    ',' (44) 156
+    '-' (45) 141
+    ':' (58) 164 183 184
+    ';' (59) 153 154 162 163
+    '[' <str> (91) 99 101
+    ']' (93) 99 101
+    'f' (102) 17 75 89
+    't' (116) 16 74 88
+    '{' (123) 105 106 159 183
+    '|' (124) 80 87
+    '}' (125) 105 106 159 183
+    error (256) 5 6 13 48 97 101 106 129 134 148 152
+    "HOA:" (258) 13 21
+    "States:" (259) 28 136
+    "Start:" (260) 29 30 137
+    "AP:" (261) 25
+    "Alias:" (262) 34
+    "Acceptance:" (263) 36
+    "acc-name:" (264) 37
+    "controllable-AP:" (265) 32
+    "tool:" (266) 38
+    "name:" (267) 39
+    "properties:" (268) 40
+    "--BODY--" (269) 12
+    "--END--" (270) 12 13
+    "State:" (271) 98 139
+    "spot.highlight.edges:" (272) 42
+    "spot.highlight.states:" (273) 44
+    "spot.state-player:" (274) 46
+    "identifier" <str> (275) 19 37 55 57 58 69 83 84 164 176 180
+    "header name" <str> (276) 47
+    "alias name" <str> (277) 34 77
+    "string" <str> (278) 15 38 39 51 68 196
+    "integer" <num> (279) 23 25 28 36 54 60 62 64 67 76 82 91 135 136 137 139 143 146 155 156 157 189 193
+    "#line" <str> (280) 3
+    BDD <b> (281) 100
+    "end of DSTAR automaton" (282) 128 129
+    "DRA" (283) 130
+    "DSA" (284) 131
+    "v2" (285) 128
+    "explicit" (286) 128
+    "Acceptance-Pairs:" (287) 135
+    "Acc-Sig:" (288) 144
+    "---" (289) 128
+    "never" (290) 159
+    "skip" (291) 169
+    "if" (292) 167
+    "fi" (293) 167
+    "do" (294) 168
+    "od" (295) 168
+    "->" (296) 180 181
+    "goto" (297) 180
+    "false" (298) 171 178
+    "atomic" (299) 183
+    "assert" (300) 181
+    "boolean formula" <str> (301) 175 181
+    "start of PGSolver game" (302) 150
+    "end of PGSolver game" (303) 151 152
+    "-1" (304) 185
+    "LBTT header" <num> (305) 187
+    "state acceptance" <num> (306) 188
+    "acceptance sets for empty automaton" <num> (307) 186
+    "acceptance set" <num> (308) 195
+    "state number" <num> (309) 193
+    "destination number" <num> (310) 198
+
+
+Nonterminals, with rules where they appear
+
+    $accept (72)
+        on left: 0
+    aut (73)
+        on left: 1 3 4 5 6
+        on right: 0 3
+    $@1 (74)
+        on left: 2
+        on right: 3
+    aut-1 (75)
+        on left: 7 8 9 10 11
+        on right: 1 6
+    hoa (76)
+        on left: 12 13
+        on right: 7
+    string_opt <str> (77)
+        on left: 14 15
+        on right: 38 98 139 157
+    BOOLEAN (78)
+        on left: 16 17
+        on right: 53 66
+    header (79)
+        on left: 18
+        on right: 12
+    version (80)
+        on left: 19
+        on right: 21
+    format-version (81)
+        on left: 21
+        on right: 18
+    $@2 (82)
+        on left: 20
+        on right: 21
+    controllable-aps (83)
+        on left: 22 23
+        on right: 23 32
+    aps (84)
+        on left: 25
+        on right: 31 138
+    $@3 (85)
+        on left: 24
+        on right: 25
+    header-items (86)
+        on left: 26 27
+        on right: 18 27
+    header-item (87)
+        on left: 28 29 30 31 32 34 36 37 38 39 40 42 44 46 47 48
+        on right: 27
+    $@4 (88)
+        on left: 33
+        on right: 34
+    $@5 (89)
+        on left: 35
+        on right: 36
+    $@6 (90)
+        on left: 41
+        on right: 42
+    $@7 (91)
+        on left: 43
+        on right: 44
+    $@8 (92)
+        on left: 45
+        on right: 46
+    ap-names (93)
+        on left: 49 50
+        on right: 25 50
+    ap-name (94)
+        on left: 51
+        on right: 50
+    acc-spec (95)
+        on left: 52 53 54 55
+        on right: 37 53 54 55
+    properties (96)
+        on left: 56 57 58
+        on right: 40 57 58
+    highlight-edges (97)
+        on left: 59 60
+        on right: 42 60
+    highlight-states (98)
+        on left: 61 62
+        on right: 44 62
+    state-player (99)
+        on left: 63 64
+        on right: 46 64
+    header-spec (100)
+        on left: 65 66 67 68 69
+        on right: 47 66 67 68 69
+    state-conj-2 <states> (101)
+        on left: 70 71
+        on right: 71 121
+    init-state-conj-2 <states> (102)
+        on left: 72 73
+        on right: 29 73
+    label-expr <b> (103)
+        on left: 74 75 76 77 78 79 80 81
+        on right: 34 78 79 80 81 99
+    acc-set <num> (104)
+        on left: 82
+        on right: 83 84 108
+    acceptance-cond <code> (105)
+        on left: 83 84 85 86 87 88 89
+        on right: 36 85 86 87
+    body (106)
+        on left: 90
+        on right: 12
+    state-num <num> (107)
+        on left: 91
+        on right: 30 72 73 92
+    checked-state-num <num> (108)
+        on left: 92
+        on right: 70 71 98 118 119 125
+    states (109)
+        on left: 93 94
+        on right: 90 94
+    state (110)
+        on left: 95 96 97
+        on right: 94
+    state-name (111)
+        on left: 98
+        on right: 95 96
+    label (112)
+        on left: 99 100 101
+        on right: 103 104
+    state-label_opt (113)
+        on left: 102 103
+        on right: 98
+    trans-label (114)
+        on left: 104
+        on right: 119 120 127
+    acc-sig <mark> (115)
+        on left: 105 106
+        on right: 110 112
+    acc-sets <mark> (116)
+        on left: 107 108
+        on right: 105 108
+    state-acc_opt <mark> (117)
+        on left: 109 110
+        on right: 98
+    trans-acc_opt <mark> (118)
+        on left: 111 112
+        on right: 118 119 120 125 126
+    labeled-edges (119)
+        on left: 113 114
+        on right: 95
+    some-labeled-edges (120)
+        on left: 115 116 117
+        on right: 114 116 117
+    incorrectly-unlabeled-edge (121)
+        on left: 118
+        on right: 117
+    labeled-edge (122)
+        on left: 119 120
+        on right: 115 116
+    state-conj-checked <states> (123)
+        on left: 121
+        on right: 120 126
+    unlabeled-edges (124)
+        on left: 122 123 124
+        on right: 96 123 124
+    unlabeled-edge (125)
+        on left: 125 126
+        on right: 122 123 127
+    incorrectly-labeled-edge (126)
+        on left: 127
+        on right: 124
+    dstar (127)
+        on left: 128 129
+        on right: 10
+    dstar_type (128)
+        on left: 130 131
+        on right: 128 129
+    dstar_header (129)
+        on left: 132
+        on right: 128
+    dstar_sizes (130)
+        on left: 133 134 135 136 137 138
+        on right: 132 134 135 136 137 138
+    dstar_state_id (131)
+        on left: 139
+        on right: 149
+    sign <num> (132)
+        on left: 140 141
+        on right: 143
+    dstar_accsigs <mark> (133)
+        on left: 142 143
+        on right: 143 144
+    dstar_state_accsig <mark> (134)
+        on left: 144
+        on right: 149
+    dstar_transitions (135)
+        on left: 145 146
+        on right: 146 149
+    dstar_states (136)
+        on left: 147 148 149
+        on right: 128 148 149
+    pgamestart (137)
+        on left: 150
+        on right: 151 152
+    pgame (138)
+        on left: 151 152
+        on right: 11
+    pgame_nodes (139)
+        on left: 153 154
+        on right: 151 154
+    pgame_succs <states> (140)
+        on left: 155 156
+        on right: 156 157
+    pgame_node (141)
+        on left: 157
+        on right: 153 154
+    never (142)
+        on left: 159
+        on right: 8
+    $@9 (143)
+        on left: 158
+        on right: 159
+    nc-states (144)
+        on left: 160 161 162 163
+        on right: 159 162 163
+    nc-one-ident <str> (145)
+        on left: 164
+        on right: 165 166
+    nc-ident-list <str> (146)
+        on left: 165 166
+        on right: 166 169 170 171 172
+    nc-transition-block <list> (147)
+        on left: 167 168
+        on right: 172
+    nc-state (148)
+        on left: 169 170 171 172
+        on right: 161 162
+    nc-transitions <list> (149)
+        on left: 173 174
+        on right: 167 168 174
+    nc-formula-or-ident <str> (150)
+        on left: 175 176
+        on right: 177
+    nc-formula <b> (151)
+        on left: 177 178
+        on right: 182
+    nc-opt-dest <str> (152)
+        on left: 179 180 181
+        on right: 182
+    nc-src-dest <p> (153)
+        on left: 182
+        on right: 183 184
+    nc-transition <p> (154)
+        on left: 183 184
+        on right: 174
+    lbtt (155)
+        on left: 185 186
+        on right: 9
+    lbtt-header-states (156)
+        on left: 187
+        on right: 186 188 189
+    lbtt-header (157)
+        on left: 188 189
+        on right: 185
+    lbtt-body (158)
+        on left: 190
+        on right: 185
+    lbtt-states (159)
+        on left: 191 192
+        on right: 190 192
+    lbtt-state (160)
+        on left: 193
+        on right: 192
+    lbtt-acc <mark> (161)
+        on left: 194 195
+        on right: 193 195 198
+    lbtt-guard (162)
+        on left: 196
+        on right: 198
+    lbtt-transitions (163)
+        on left: 197 198
+        on right: 192 198
+
+
+State 0
+
+    0 $accept: • aut "end of file"
+    1 aut: • aut-1
+    3    | • "#line" $@1 aut
+    4    | • "end of file"
+    5    | • error "end of file"
+    6    | • error aut-1
+    7 aut-1: • hoa
+    8      | • never
+    9      | • lbtt
+   10      | • dstar
+   11      | • pgame
+   12 hoa: • header "--BODY--" body "--END--"
+   13    | • "HOA:" error "--END--"
+   18 header: • format-version header-items
+   21 format-version: • "HOA:" $@2 version
+  128 dstar: • dstar_type "v2" "explicit" dstar_header "---" dstar_states "end of DSTAR automaton"
+  129      | • dstar_type error "end of DSTAR automaton"
+  130 dstar_type: • "DRA"
+  131           | • "DSA"
+  150 pgamestart: • "start of PGSolver game"
+  151 pgame: • pgamestart pgame_nodes "end of PGSolver game"
+  152      | • pgamestart error "end of PGSolver game"
+  159 never: • "never" $@9 '{' nc-states '}'
+  185 lbtt: • lbtt-header lbtt-body "-1"
+  186     | • lbtt-header-states "acceptance sets for empty automaton"
+  187 lbtt-header-states: • "LBTT header"
+  188 lbtt-header: • lbtt-header-states "state acceptance"
+  189            | • lbtt-header-states "integer"
+
+    "end of file"             shift, and go to state 1
+    error                     shift, and go to state 2
+    "HOA:"                    shift, and go to state 3
+    "#line"                   shift, and go to state 4
+    "DRA"                     shift, and go to state 5
+    "DSA"                     shift, and go to state 6
+    "never"                   shift, and go to state 7
+    "start of PGSolver game"  shift, and go to state 8
+    "LBTT header"             shift, and go to state 9
+
+    aut                 go to state 10
+    aut-1               go to state 11
+    hoa                 go to state 12
+    header              go to state 13
+    format-version      go to state 14
+    dstar               go to state 15
+    dstar_type          go to state 16
+    pgamestart          go to state 17
+    pgame               go to state 18
+    never               go to state 19
+    lbtt                go to state 20
+    lbtt-header-states  go to state 21
+    lbtt-header         go to state 22
+
+
+State 1
+
+    4 aut: "end of file" •
+
+    $default  reduce using rule 4 (aut)
+
+
+State 2
+
+    5 aut: error • "end of file"
+    6    | error • aut-1
+    7 aut-1: • hoa
+    8      | • never
+    9      | • lbtt
+   10      | • dstar
+   11      | • pgame
+   12 hoa: • header "--BODY--" body "--END--"
+   13    | • "HOA:" error "--END--"
+   18 header: • format-version header-items
+   21 format-version: • "HOA:" $@2 version
+  128 dstar: • dstar_type "v2" "explicit" dstar_header "---" dstar_states "end of DSTAR automaton"
+  129      | • dstar_type error "end of DSTAR automaton"
+  130 dstar_type: • "DRA"
+  131           | • "DSA"
+  150 pgamestart: • "start of PGSolver game"
+  151 pgame: • pgamestart pgame_nodes "end of PGSolver game"
+  152      | • pgamestart error "end of PGSolver game"
+  159 never: • "never" $@9 '{' nc-states '}'
+  185 lbtt: • lbtt-header lbtt-body "-1"
+  186     | • lbtt-header-states "acceptance sets for empty automaton"
+  187 lbtt-header-states: • "LBTT header"
+  188 lbtt-header: • lbtt-header-states "state acceptance"
+  189            | • lbtt-header-states "integer"
+
+    "end of file"             shift, and go to state 23
+    "HOA:"                    shift, and go to state 3
+    "DRA"                     shift, and go to state 5
+    "DSA"                     shift, and go to state 6
+    "never"                   shift, and go to state 7
+    "start of PGSolver game"  shift, and go to state 8
+    "LBTT header"             shift, and go to state 9
+
+    aut-1               go to state 24
+    hoa                 go to state 12
+    header              go to state 13
+    format-version      go to state 14
+    dstar               go to state 15
+    dstar_type          go to state 16
+    pgamestart          go to state 17
+    pgame               go to state 18
+    never               go to state 19
+    lbtt                go to state 20
+    lbtt-header-states  go to state 21
+    lbtt-header         go to state 22
+
+
+State 3
+
+   13 hoa: "HOA:" • error "--END--"
+   20 $@2: ε •  ["identifier"]
+   21 format-version: "HOA:" • $@2 version
+
+    error  shift, and go to state 25
+
+    "identifier"  reduce using rule 20 ($@2)
+
+    $@2  go to state 26
+
+
+State 4
+
+    2 $@1: ε •
+    3 aut: "#line" • $@1 aut
+
+    $default  reduce using rule 2 ($@1)
+
+    $@1  go to state 27
+
+
+State 5
+
+  130 dstar_type: "DRA" •
+
+    $default  reduce using rule 130 (dstar_type)
+
+
+State 6
+
+  131 dstar_type: "DSA" •
+
+    $default  reduce using rule 131 (dstar_type)
+
+
+State 7
+
+  158 $@9: ε •
+  159 never: "never" • $@9 '{' nc-states '}'
+
+    $default  reduce using rule 158 ($@9)
+
+    $@9  go to state 28
+
+
+State 8
+
+  150 pgamestart: "start of PGSolver game" •
+
+    $default  reduce using rule 150 (pgamestart)
+
+
+State 9
+
+  187 lbtt-header-states: "LBTT header" •
+
+    $default  reduce using rule 187 (lbtt-header-states)
+
+
+State 10
+
+    0 $accept: aut • "end of file"
+
+    "end of file"  shift, and go to state 29
+
+
+State 11
+
+    1 aut: aut-1 •
+
+    $default  reduce using rule 1 (aut)
+
+
+State 12
+
+    7 aut-1: hoa •
+
+    $default  reduce using rule 7 (aut-1)
+
+
+State 13
+
+   12 hoa: header • "--BODY--" body "--END--"
+
+    "--BODY--"  shift, and go to state 30
+
+
+State 14
+
+   18 header: format-version • header-items
+   26 header-items: ε •
+   27             | • header-items header-item
+
+    $default  reduce using rule 26 (header-items)
+
+    header-items  go to state 31
+
+
+State 15
+
+   10 aut-1: dstar •
+
+    $default  reduce using rule 10 (aut-1)
+
+
+State 16
+
+  128 dstar: dstar_type • "v2" "explicit" dstar_header "---" dstar_states "end of DSTAR automaton"
+  129      | dstar_type • error "end of DSTAR automaton"
+
+    error  shift, and go to state 32
+    "v2"   shift, and go to state 33
+
+
+State 17
+
+  151 pgame: pgamestart • pgame_nodes "end of PGSolver game"
+  152      | pgamestart • error "end of PGSolver game"
+  153 pgame_nodes: • pgame_node ';'
+  154            | • pgame_nodes pgame_node ';'
+  157 pgame_node: • "integer" "integer" "integer" pgame_succs string_opt
+
+    error      shift, and go to state 34
+    "integer"  shift, and go to state 35
+
+    pgame_nodes  go to state 36
+    pgame_node   go to state 37
+
+
+State 18
+
+   11 aut-1: pgame •
+
+    $default  reduce using rule 11 (aut-1)
+
+
+State 19
+
+    8 aut-1: never •
+
+    $default  reduce using rule 8 (aut-1)
+
+
+State 20
+
+    9 aut-1: lbtt •
+
+    $default  reduce using rule 9 (aut-1)
+
+
+State 21
+
+  186 lbtt: lbtt-header-states • "acceptance sets for empty automaton"
+  188 lbtt-header: lbtt-header-states • "state acceptance"
+  189            | lbtt-header-states • "integer"
+
+    "integer"                              shift, and go to state 38
+    "state acceptance"                     shift, and go to state 39
+    "acceptance sets for empty automaton"  shift, and go to state 40
+
+
+State 22
+
+  185 lbtt: lbtt-header • lbtt-body "-1"
+  190 lbtt-body: • lbtt-states
+  191 lbtt-states: ε •
+  192            | • lbtt-states lbtt-state lbtt-transitions
+
+    $default  reduce using rule 191 (lbtt-states)
+
+    lbtt-body    go to state 41
+    lbtt-states  go to state 42
+
+
+State 23
+
+    5 aut: error "end of file" •
+
+    $default  reduce using rule 5 (aut)
+
+
+State 24
+
+    6 aut: error aut-1 •
+
+    $default  reduce using rule 6 (aut)
+
+
+State 25
+
+   13 hoa: "HOA:" error • "--END--"
+
+    "--END--"  shift, and go to state 43
+
+
+State 26
+
+   19 version: • "identifier"
+   21 format-version: "HOA:" $@2 • version
+
+    "identifier"  shift, and go to state 44
+
+    version  go to state 45
+
+
+State 27
+
+    1 aut: • aut-1
+    3    | • "#line" $@1 aut
+    3    | "#line" $@1 • aut
+    4    | • "end of file"
+    5    | • error "end of file"
+    6    | • error aut-1
+    7 aut-1: • hoa
+    8      | • never
+    9      | • lbtt
+   10      | • dstar
+   11      | • pgame
+   12 hoa: • header "--BODY--" body "--END--"
+   13    | • "HOA:" error "--END--"
+   18 header: • format-version header-items
+   21 format-version: • "HOA:" $@2 version
+  128 dstar: • dstar_type "v2" "explicit" dstar_header "---" dstar_states "end of DSTAR automaton"
+  129      | • dstar_type error "end of DSTAR automaton"
+  130 dstar_type: • "DRA"
+  131           | • "DSA"
+  150 pgamestart: • "start of PGSolver game"
+  151 pgame: • pgamestart pgame_nodes "end of PGSolver game"
+  152      | • pgamestart error "end of PGSolver game"
+  159 never: • "never" $@9 '{' nc-states '}'
+  185 lbtt: • lbtt-header lbtt-body "-1"
+  186     | • lbtt-header-states "acceptance sets for empty automaton"
+  187 lbtt-header-states: • "LBTT header"
+  188 lbtt-header: • lbtt-header-states "state acceptance"
+  189            | • lbtt-header-states "integer"
+
+    "end of file"             shift, and go to state 1
+    error                     shift, and go to state 2
+    "HOA:"                    shift, and go to state 3
+    "#line"                   shift, and go to state 4
+    "DRA"                     shift, and go to state 5
+    "DSA"                     shift, and go to state 6
+    "never"                   shift, and go to state 7
+    "start of PGSolver game"  shift, and go to state 8
+    "LBTT header"             shift, and go to state 9
+
+    aut                 go to state 46
+    aut-1               go to state 11
+    hoa                 go to state 12
+    header              go to state 13
+    format-version      go to state 14
+    dstar               go to state 15
+    dstar_type          go to state 16
+    pgamestart          go to state 17
+    pgame               go to state 18
+    never               go to state 19
+    lbtt                go to state 20
+    lbtt-header-states  go to state 21
+    lbtt-header         go to state 22
+
+
+State 28
+
+  159 never: "never" $@9 • '{' nc-states '}'
+
+    '{'  shift, and go to state 47
+
+
+State 29
+
+    0 $accept: aut "end of file" •
+
+    $default  accept
+
+
+State 30
+
+   12 hoa: header "--BODY--" • body "--END--"
+   90 body: • states
+   93 states: ε •
+   94       | • states state
+
+    $default  reduce using rule 93 (states)
+
+    body    go to state 48
+    states  go to state 49
+
+
+State 31
+
+   18 header: format-version header-items •  ["--BODY--"]
+   25 aps: • "AP:" "integer" $@3 ap-names
+   27 header-items: header-items • header-item
+   28 header-item: • "States:" "integer"
+   29            | • "Start:" init-state-conj-2
+   30            | • "Start:" state-num
+   31            | • aps
+   32            | • "controllable-AP:" controllable-aps
+   34            | • "Alias:" "alias name" $@4 label-expr
+   36            | • "Acceptance:" "integer" $@5 acceptance-cond
+   37            | • "acc-name:" "identifier" acc-spec
+   38            | • "tool:" "string" string_opt
+   39            | • "name:" "string"
+   40            | • "properties:" properties
+   42            | • "spot.highlight.edges:" $@6 highlight-edges
+   44            | • "spot.highlight.states:" $@7 highlight-states
+   46            | • "spot.state-player:" $@8 state-player
+   47            | • "header name" header-spec
+   48            | • error
+
+    error                     shift, and go to state 50
+    "States:"                 shift, and go to state 51
+    "Start:"                  shift, and go to state 52
+    "AP:"                     shift, and go to state 53
+    "Alias:"                  shift, and go to state 54
+    "Acceptance:"             shift, and go to state 55
+    "acc-name:"               shift, and go to state 56
+    "controllable-AP:"        shift, and go to state 57
+    "tool:"                   shift, and go to state 58
+    "name:"                   shift, and go to state 59
+    "properties:"             shift, and go to state 60
+    "spot.highlight.edges:"   shift, and go to state 61
+    "spot.highlight.states:"  shift, and go to state 62
+    "spot.state-player:"      shift, and go to state 63
+    "header name"             shift, and go to state 64
+
+    "--BODY--"  reduce using rule 18 (header)
+
+    aps          go to state 65
+    header-item  go to state 66
+
+
+State 32
+
+  129 dstar: dstar_type error • "end of DSTAR automaton"
+
+    "end of DSTAR automaton"  shift, and go to state 67
+
+
+State 33
+
+  128 dstar: dstar_type "v2" • "explicit" dstar_header "---" dstar_states "end of DSTAR automaton"
+
+    "explicit"  shift, and go to state 68
+
+
+State 34
+
+  152 pgame: pgamestart error • "end of PGSolver game"
+
+    "end of PGSolver game"  shift, and go to state 69
+
+
+State 35
+
+  157 pgame_node: "integer" • "integer" "integer" pgame_succs string_opt
+
+    "integer"  shift, and go to state 70
+
+
+State 36
+
+  151 pgame: pgamestart pgame_nodes • "end of PGSolver game"
+  154 pgame_nodes: pgame_nodes • pgame_node ';'
+  157 pgame_node: • "integer" "integer" "integer" pgame_succs string_opt
+
+    "integer"               shift, and go to state 35
+    "end of PGSolver game"  shift, and go to state 71
+
+    pgame_node  go to state 72
+
+
+State 37
+
+  153 pgame_nodes: pgame_node • ';'
+
+    ';'  shift, and go to state 73
+
+
+State 38
+
+  189 lbtt-header: lbtt-header-states "integer" •
+
+    $default  reduce using rule 189 (lbtt-header)
+
+
+State 39
+
+  188 lbtt-header: lbtt-header-states "state acceptance" •
+
+    $default  reduce using rule 188 (lbtt-header)
+
+
+State 40
+
+  186 lbtt: lbtt-header-states "acceptance sets for empty automaton" •
+
+    $default  reduce using rule 186 (lbtt)
+
+
+State 41
+
+  185 lbtt: lbtt-header lbtt-body • "-1"
+
+    "-1"  shift, and go to state 74
+
+
+State 42
+
+  190 lbtt-body: lbtt-states •  ["-1"]
+  192 lbtt-states: lbtt-states • lbtt-state lbtt-transitions
+  193 lbtt-state: • "state number" "integer" lbtt-acc
+
+    "state number"  shift, and go to state 75
+
+    $default  reduce using rule 190 (lbtt-body)
+
+    lbtt-state  go to state 76
+
+
+State 43
+
+   13 hoa: "HOA:" error "--END--" •
+
+    $default  reduce using rule 13 (hoa)
+
+
+State 44
+
+   19 version: "identifier" •
+
+    $default  reduce using rule 19 (version)
+
+
+State 45
+
+   21 format-version: "HOA:" $@2 version •
+
+    $default  reduce using rule 21 (format-version)
+
+
+State 46
+
+    3 aut: "#line" $@1 aut •
+
+    $default  reduce using rule 3 (aut)
+
+
+State 47
+
+  159 never: "never" $@9 '{' • nc-states '}'
+  160 nc-states: ε •  ['}', ';']
+  161          | • nc-state
+  162          | • nc-states ';' nc-state
+  163          | • nc-states ';'
+  164 nc-one-ident: • "identifier" ':'
+  165 nc-ident-list: • nc-one-ident
+  166              | • nc-ident-list nc-one-ident
+  169 nc-state: • nc-ident-list "skip"
+  170         | • nc-ident-list
+  171         | • nc-ident-list "false"
+  172         | • nc-ident-list nc-transition-block
+
+    "identifier"  shift, and go to state 77
+
+    $default  reduce using rule 160 (nc-states)
+
+    nc-states      go to state 78
+    nc-one-ident   go to state 79
+    nc-ident-list  go to state 80
+    nc-state       go to state 81
+
+
+State 48
+
+   12 hoa: header "--BODY--" body • "--END--"
+
+    "--END--"  shift, and go to state 82
+
+
+State 49
+
+   90 body: states •  ["--END--"]
+   94 states: states • state
+   95 state: • state-name labeled-edges
+   96      | • state-name unlabeled-edges
+   97      | • error
+   98 state-name: • "State:" state-label_opt checked-state-num string_opt state-acc_opt
+
+    error     shift, and go to state 83
+    "State:"  shift, and go to state 84
+
+    "--END--"  reduce using rule 90 (body)
+
+    state       go to state 85
+    state-name  go to state 86
+
+
+State 50
+
+   48 header-item: error •
+
+    $default  reduce using rule 48 (header-item)
+
+
+State 51
+
+   28 header-item: "States:" • "integer"
+
+    "integer"  shift, and go to state 87
+
+
+State 52
+
+   29 header-item: "Start:" • init-state-conj-2
+   30            | "Start:" • state-num
+   72 init-state-conj-2: • state-num '&' state-num
+   73                  | • init-state-conj-2 '&' state-num
+   91 state-num: • "integer"
+
+    "integer"  shift, and go to state 88
+
+    init-state-conj-2  go to state 89
+    state-num          go to state 90
+
+
+State 53
+
+   25 aps: "AP:" • "integer" $@3 ap-names
+
+    "integer"  shift, and go to state 91
+
+
+State 54
+
+   34 header-item: "Alias:" • "alias name" $@4 label-expr
+
+    "alias name"  shift, and go to state 92
+
+
+State 55
+
+   36 header-item: "Acceptance:" • "integer" $@5 acceptance-cond
+
+    "integer"  shift, and go to state 93
+
+
+State 56
+
+   37 header-item: "acc-name:" • "identifier" acc-spec
+
+    "identifier"  shift, and go to state 94
+
+
+State 57
+
+   22 controllable-aps: ε •
+   23                 | • controllable-aps "integer"
+   32 header-item: "controllable-AP:" • controllable-aps
+
+    $default  reduce using rule 22 (controllable-aps)
+
+    controllable-aps  go to state 95
+
+
+State 58
+
+   38 header-item: "tool:" • "string" string_opt
+
+    "string"  shift, and go to state 96
+
+
+State 59
+
+   39 header-item: "name:" • "string"
+
+    "string"  shift, and go to state 97
+
+
+State 60
+
+   40 header-item: "properties:" • properties
+   56 properties: ε •
+   57           | • properties "identifier"
+   58           | • properties '!' "identifier"
+
+    $default  reduce using rule 56 (properties)
+
+    properties  go to state 98
+
+
+State 61
+
+   41 $@6: ε •
+   42 header-item: "spot.highlight.edges:" • $@6 highlight-edges
+
+    $default  reduce using rule 41 ($@6)
+
+    $@6  go to state 99
+
+
+State 62
+
+   43 $@7: ε •
+   44 header-item: "spot.highlight.states:" • $@7 highlight-states
+
+    $default  reduce using rule 43 ($@7)
+
+    $@7  go to state 100
+
+
+State 63
+
+   45 $@8: ε •
+   46 header-item: "spot.state-player:" • $@8 state-player
+
+    $default  reduce using rule 45 ($@8)
+
+    $@8  go to state 101
+
+
+State 64
+
+   47 header-item: "header name" • header-spec
+   65 header-spec: ε •
+   66            | • header-spec BOOLEAN
+   67            | • header-spec "integer"
+   68            | • header-spec "string"
+   69            | • header-spec "identifier"
+
+    $default  reduce using rule 65 (header-spec)
+
+    header-spec  go to state 102
+
+
+State 65
+
+   31 header-item: aps •
+
+    $default  reduce using rule 31 (header-item)
+
+
+State 66
+
+   27 header-items: header-items header-item •
+
+    $default  reduce using rule 27 (header-items)
+
+
+State 67
+
+  129 dstar: dstar_type error "end of DSTAR automaton" •
+
+    $default  reduce using rule 129 (dstar)
+
+
+State 68
+
+  128 dstar: dstar_type "v2" "explicit" • dstar_header "---" dstar_states "end of DSTAR automaton"
+  132 dstar_header: • dstar_sizes
+  133 dstar_sizes: ε •
+  134            | • dstar_sizes error
+  135            | • dstar_sizes "Acceptance-Pairs:" "integer"
+  136            | • dstar_sizes "States:" "integer"
+  137            | • dstar_sizes "Start:" "integer"
+  138            | • dstar_sizes aps
+
+    $default  reduce using rule 133 (dstar_sizes)
+
+    dstar_header  go to state 103
+    dstar_sizes   go to state 104
+
+
+State 69
+
+  152 pgame: pgamestart error "end of PGSolver game" •
+
+    $default  reduce using rule 152 (pgame)
+
+
+State 70
+
+  157 pgame_node: "integer" "integer" • "integer" pgame_succs string_opt
+
+    "integer"  shift, and go to state 105
+
+
+State 71
+
+  151 pgame: pgamestart pgame_nodes "end of PGSolver game" •
+
+    $default  reduce using rule 151 (pgame)
+
+
+State 72
+
+  154 pgame_nodes: pgame_nodes pgame_node • ';'
+
+    ';'  shift, and go to state 106
+
+
+State 73
+
+  153 pgame_nodes: pgame_node ';' •
+
+    $default  reduce using rule 153 (pgame_nodes)
+
+
+State 74
+
+  185 lbtt: lbtt-header lbtt-body "-1" •
+
+    $default  reduce using rule 185 (lbtt)
+
+
+State 75
+
+  193 lbtt-state: "state number" • "integer" lbtt-acc
+
+    "integer"  shift, and go to state 107
+
+
+State 76
+
+  192 lbtt-states: lbtt-states lbtt-state • lbtt-transitions
+  197 lbtt-transitions: ε •
+  198                 | • lbtt-transitions "destination number" lbtt-acc lbtt-guard
+
+    $default  reduce using rule 197 (lbtt-transitions)
+
+    lbtt-transitions  go to state 108
+
+
+State 77
+
+  164 nc-one-ident: "identifier" • ':'
+
+    ':'  shift, and go to state 109
+
+
+State 78
+
+  159 never: "never" $@9 '{' nc-states • '}'
+  162 nc-states: nc-states • ';' nc-state
+  163          | nc-states • ';'
+
+    '}'  shift, and go to state 110
+    ';'  shift, and go to state 111
+
+
+State 79
+
+  165 nc-ident-list: nc-one-ident •
+
+    $default  reduce using rule 165 (nc-ident-list)
+
+
+State 80
+
+  164 nc-one-ident: • "identifier" ':'
+  166 nc-ident-list: nc-ident-list • nc-one-ident
+  167 nc-transition-block: • "if" nc-transitions "fi"
+  168                    | • "do" nc-transitions "od"
+  169 nc-state: nc-ident-list • "skip"
+  170         | nc-ident-list •  ['}', ';']
+  171         | nc-ident-list • "false"
+  172         | nc-ident-list • nc-transition-block
+
+    "identifier"  shift, and go to state 77
+    "skip"        shift, and go to state 112
+    "if"          shift, and go to state 113
+    "do"          shift, and go to state 114
+    "false"       shift, and go to state 115
+
+    $default  reduce using rule 170 (nc-state)
+
+    nc-one-ident         go to state 116
+    nc-transition-block  go to state 117
+
+
+State 81
+
+  161 nc-states: nc-state •
+
+    $default  reduce using rule 161 (nc-states)
+
+
+State 82
+
+   12 hoa: header "--BODY--" body "--END--" •
+
+    $default  reduce using rule 12 (hoa)
+
+
+State 83
+
+   97 state: error •
+
+    $default  reduce using rule 97 (state)
+
+
+State 84
+
+   98 state-name: "State:" • state-label_opt checked-state-num string_opt state-acc_opt
+   99 label: • '[' label-expr ']'
+  100      | • BDD
+  101      | • '[' error ']'
+  102 state-label_opt: ε •  ["integer"]
+  103                | • label
+
+    '['  shift, and go to state 118
+    BDD  shift, and go to state 119
+
+    $default  reduce using rule 102 (state-label_opt)
+
+    label            go to state 120
+    state-label_opt  go to state 121
+
+
+State 85
+
+   94 states: states state •
+
+    $default  reduce using rule 94 (states)
+
+
+State 86
+
+   70 state-conj-2: • checked-state-num '&' checked-state-num
+   71             | • state-conj-2 '&' checked-state-num
+   91 state-num: • "integer"
+   92 checked-state-num: • state-num
+   95 state: state-name • labeled-edges
+   96      | state-name • unlabeled-edges
+   99 label: • '[' label-expr ']'
+  100      | • BDD
+  101      | • '[' error ']'
+  104 trans-label: • label
+  113 labeled-edges: ε •  [error, "--END--", "State:"]
+  114              | • some-labeled-edges
+  115 some-labeled-edges: • labeled-edge
+  116                   | • some-labeled-edges labeled-edge
+  117                   | • some-labeled-edges incorrectly-unlabeled-edge
+  119 labeled-edge: • trans-label checked-state-num trans-acc_opt
+  120             | • trans-label state-conj-checked trans-acc_opt
+  121 state-conj-checked: • state-conj-2
+  122 unlabeled-edges: • unlabeled-edge
+  123                | • unlabeled-edges unlabeled-edge
+  124                | • unlabeled-edges incorrectly-labeled-edge
+  125 unlabeled-edge: • checked-state-num trans-acc_opt
+  126               | • state-conj-checked trans-acc_opt
+
+    "integer"  shift, and go to state 88
+    '['        shift, and go to state 118
+    BDD        shift, and go to state 119
+
+    $default  reduce using rule 113 (labeled-edges)
+
+    state-conj-2        go to state 122
+    state-num           go to state 123
+    checked-state-num   go to state 124
+    label               go to state 125
+    trans-label         go to state 126
+    labeled-edges       go to state 127
+    some-labeled-edges  go to state 128
+    labeled-edge        go to state 129
+    state-conj-checked  go to state 130
+    unlabeled-edges     go to state 131
+    unlabeled-edge      go to state 132
+
+
+State 87
+
+   28 header-item: "States:" "integer" •
+
+    $default  reduce using rule 28 (header-item)
+
+
+State 88
+
+   91 state-num: "integer" •
+
+    $default  reduce using rule 91 (state-num)
+
+
+State 89
+
+   29 header-item: "Start:" init-state-conj-2 •  [error, "States:", "Start:", "AP:", "Alias:", "Acceptance:", "acc-name:", "controllable-AP:", "tool:", "name:", "properties:", "--BODY--", "spot.highlight.edges:", "spot.highlight.states:", "spot.state-player:", "header name"]
+   73 init-state-conj-2: init-state-conj-2 • '&' state-num
+
+    '&'  shift, and go to state 133
+
+    $default  reduce using rule 29 (header-item)
+
+
+State 90
+
+   30 header-item: "Start:" state-num •  [error, "States:", "Start:", "AP:", "Alias:", "Acceptance:", "acc-name:", "controllable-AP:", "tool:", "name:", "properties:", "--BODY--", "spot.highlight.edges:", "spot.highlight.states:", "spot.state-player:", "header name"]
+   72 init-state-conj-2: state-num • '&' state-num
+
+    '&'  shift, and go to state 134
+
+    $default  reduce using rule 30 (header-item)
+
+
+State 91
+
+   24 $@3: ε •
+   25 aps: "AP:" "integer" • $@3 ap-names
+
+    $default  reduce using rule 24 ($@3)
+
+    $@3  go to state 135
+
+
+State 92
+
+   33 $@4: ε •
+   34 header-item: "Alias:" "alias name" • $@4 label-expr
+
+    $default  reduce using rule 33 ($@4)
+
+    $@4  go to state 136
+
+
+State 93
+
+   35 $@5: ε •
+   36 header-item: "Acceptance:" "integer" • $@5 acceptance-cond
+
+    $default  reduce using rule 35 ($@5)
+
+    $@5  go to state 137
+
+
+State 94
+
+   37 header-item: "acc-name:" "identifier" • acc-spec
+   52 acc-spec: ε •
+   53         | • acc-spec BOOLEAN
+   54         | • acc-spec "integer"
+   55         | • acc-spec "identifier"
+
+    $default  reduce using rule 52 (acc-spec)
+
+    acc-spec  go to state 138
+
+
+State 95
+
+   23 controllable-aps: controllable-aps • "integer"
+   32 header-item: "controllable-AP:" controllable-aps •  [error, "States:", "Start:", "AP:", "Alias:", "Acceptance:", "acc-name:", "controllable-AP:", "tool:", "name:", "properties:", "--BODY--", "spot.highlight.edges:", "spot.highlight.states:", "spot.state-player:", "header name"]
+
+    "integer"  shift, and go to state 139
+
+    $default  reduce using rule 32 (header-item)
+
+
+State 96
+
+   14 string_opt: ε •  [error, "States:", "Start:", "AP:", "Alias:", "Acceptance:", "acc-name:", "controllable-AP:", "tool:", "name:", "properties:", "--BODY--", "spot.highlight.edges:", "spot.highlight.states:", "spot.state-player:", "header name"]
+   15           | • "string"
+   38 header-item: "tool:" "string" • string_opt
+
+    "string"  shift, and go to state 140
+
+    $default  reduce using rule 14 (string_opt)
+
+    string_opt  go to state 141
+
+
+State 97
+
+   39 header-item: "name:" "string" •
+
+    $default  reduce using rule 39 (header-item)
+
+
+State 98
+
+   40 header-item: "properties:" properties •  [error, "States:", "Start:", "AP:", "Alias:", "Acceptance:", "acc-name:", "controllable-AP:", "tool:", "name:", "properties:", "--BODY--", "spot.highlight.edges:", "spot.highlight.states:", "spot.state-player:", "header name"]
+   57 properties: properties • "identifier"
+   58           | properties • '!' "identifier"
+
+    "identifier"  shift, and go to state 142
+    '!'           shift, and go to state 143
+
+    $default  reduce using rule 40 (header-item)
+
+
+State 99
+
+   42 header-item: "spot.highlight.edges:" $@6 • highlight-edges
+   59 highlight-edges: ε •
+   60                | • highlight-edges "integer" "integer"
+
+    $default  reduce using rule 59 (highlight-edges)
+
+    highlight-edges  go to state 144
+
+
+State 100
+
+   44 header-item: "spot.highlight.states:" $@7 • highlight-states
+   61 highlight-states: ε •
+   62                 | • highlight-states "integer" "integer"
+
+    $default  reduce using rule 61 (highlight-states)
+
+    highlight-states  go to state 145
+
+
+State 101
+
+   46 header-item: "spot.state-player:" $@8 • state-player
+   63 state-player: ε •
+   64             | • state-player "integer"
+
+    $default  reduce using rule 63 (state-player)
+
+    state-player  go to state 146
+
+
+State 102
+
+   16 BOOLEAN: • 't'
+   17        | • 'f'
+   47 header-item: "header name" header-spec •  [error, "States:", "Start:", "AP:", "Alias:", "Acceptance:", "acc-name:", "controllable-AP:", "tool:", "name:", "properties:", "--BODY--", "spot.highlight.edges:", "spot.highlight.states:", "spot.state-player:", "header name"]
+   66 header-spec: header-spec • BOOLEAN
+   67            | header-spec • "integer"
+   68            | header-spec • "string"
+   69            | header-spec • "identifier"
+
+    "identifier"  shift, and go to state 147
+    "string"      shift, and go to state 148
+    "integer"     shift, and go to state 149
+    't'           shift, and go to state 150
+    'f'           shift, and go to state 151
+
+    $default  reduce using rule 47 (header-item)
+
+    BOOLEAN  go to state 152
+
+
+State 103
+
+  128 dstar: dstar_type "v2" "explicit" dstar_header • "---" dstar_states "end of DSTAR automaton"
+
+    "---"  shift, and go to state 153
+
+
+State 104
+
+   25 aps: • "AP:" "integer" $@3 ap-names
+  132 dstar_header: dstar_sizes •  ["---"]
+  134 dstar_sizes: dstar_sizes • error
+  135            | dstar_sizes • "Acceptance-Pairs:" "integer"
+  136            | dstar_sizes • "States:" "integer"
+  137            | dstar_sizes • "Start:" "integer"
+  138            | dstar_sizes • aps
+
+    error                shift, and go to state 154
+    "States:"            shift, and go to state 155
+    "Start:"             shift, and go to state 156
+    "AP:"                shift, and go to state 53
+    "Acceptance-Pairs:"  shift, and go to state 157
+
+    "---"  reduce using rule 132 (dstar_header)
+
+    aps  go to state 158
+
+
+State 105
+
+  155 pgame_succs: • "integer"
+  156            | • pgame_succs ',' "integer"
+  157 pgame_node: "integer" "integer" "integer" • pgame_succs string_opt
+
+    "integer"  shift, and go to state 159
+
+    pgame_succs  go to state 160
+
+
+State 106
+
+  154 pgame_nodes: pgame_nodes pgame_node ';' •
+
+    $default  reduce using rule 154 (pgame_nodes)
+
+
+State 107
+
+  193 lbtt-state: "state number" "integer" • lbtt-acc
+  194 lbtt-acc: ε •
+  195         | • lbtt-acc "acceptance set"
+
+    $default  reduce using rule 194 (lbtt-acc)
+
+    lbtt-acc  go to state 161
+
+
+State 108
+
+  192 lbtt-states: lbtt-states lbtt-state lbtt-transitions •  ["-1", "state number"]
+  198 lbtt-transitions: lbtt-transitions • "destination number" lbtt-acc lbtt-guard
+
+    "destination number"  shift, and go to state 162
+
+    $default  reduce using rule 192 (lbtt-states)
+
+
+State 109
+
+  164 nc-one-ident: "identifier" ':' •
+
+    $default  reduce using rule 164 (nc-one-ident)
+
+
+State 110
+
+  159 never: "never" $@9 '{' nc-states '}' •
+
+    $default  reduce using rule 159 (never)
+
+
+State 111
+
+  162 nc-states: nc-states ';' • nc-state
+  163          | nc-states ';' •  ['}', ';']
+  164 nc-one-ident: • "identifier" ':'
+  165 nc-ident-list: • nc-one-ident
+  166              | • nc-ident-list nc-one-ident
+  169 nc-state: • nc-ident-list "skip"
+  170         | • nc-ident-list
+  171         | • nc-ident-list "false"
+  172         | • nc-ident-list nc-transition-block
+
+    "identifier"  shift, and go to state 77
+
+    $default  reduce using rule 163 (nc-states)
+
+    nc-one-ident   go to state 79
+    nc-ident-list  go to state 80
+    nc-state       go to state 163
+
+
+State 112
+
+  169 nc-state: nc-ident-list "skip" •
+
+    $default  reduce using rule 169 (nc-state)
+
+
+State 113
+
+  167 nc-transition-block: "if" • nc-transitions "fi"
+  173 nc-transitions: ε •
+  174               | • nc-transitions nc-transition
+
+    $default  reduce using rule 173 (nc-transitions)
+
+    nc-transitions  go to state 164
+
+
+State 114
+
+  168 nc-transition-block: "do" • nc-transitions "od"
+  173 nc-transitions: ε •
+  174               | • nc-transitions nc-transition
+
+    $default  reduce using rule 173 (nc-transitions)
+
+    nc-transitions  go to state 165
+
+
+State 115
+
+  171 nc-state: nc-ident-list "false" •
+
+    $default  reduce using rule 171 (nc-state)
+
+
+State 116
+
+  166 nc-ident-list: nc-ident-list nc-one-ident •
+
+    $default  reduce using rule 166 (nc-ident-list)
+
+
+State 117
+
+  172 nc-state: nc-ident-list nc-transition-block •
+
+    $default  reduce using rule 172 (nc-state)
+
+
+State 118
+
+   74 label-expr: • 't'
+   75           | • 'f'
+   76           | • "integer"
+   77           | • "alias name"
+   78           | • '!' label-expr
+   79           | • label-expr '&' label-expr
+   80           | • label-expr '|' label-expr
+   81           | • '(' label-expr ')'
+   99 label: '[' • label-expr ']'
+  101      | '[' • error ']'
+
+    error         shift, and go to state 166
+    "alias name"  shift, and go to state 167
+    "integer"     shift, and go to state 168
+    '!'           shift, and go to state 169
+    't'           shift, and go to state 170
+    'f'           shift, and go to state 171
+    '('           shift, and go to state 172
+
+    label-expr  go to state 173
+
+
+State 119
+
+  100 label: BDD •
+
+    $default  reduce using rule 100 (label)
+
+
+State 120
+
+  103 state-label_opt: label •
+
+    $default  reduce using rule 103 (state-label_opt)
+
+
+State 121
+
+   91 state-num: • "integer"
+   92 checked-state-num: • state-num
+   98 state-name: "State:" state-label_opt • checked-state-num string_opt state-acc_opt
+
+    "integer"  shift, and go to state 88
+
+    state-num          go to state 123
+    checked-state-num  go to state 174
+
+
+State 122
+
+   71 state-conj-2: state-conj-2 • '&' checked-state-num
+  121 state-conj-checked: state-conj-2 •  [error, "--END--", "State:", "integer", '[', BDD, '{']
+
+    '&'  shift, and go to state 175
+
+    $default  reduce using rule 121 (state-conj-checked)
+
+
+State 123
+
+   92 checked-state-num: state-num •
+
+    $default  reduce using rule 92 (checked-state-num)
+
+
+State 124
+
+   70 state-conj-2: checked-state-num • '&' checked-state-num
+  105 acc-sig: • '{' acc-sets '}'
+  106        | • '{' error '}'
+  111 trans-acc_opt: ε •  [error, "--END--", "State:", "integer", '[', BDD]
+  112              | • acc-sig
+  125 unlabeled-edge: checked-state-num • trans-acc_opt
+
+    '&'  shift, and go to state 176
+    '{'  shift, and go to state 177
+
+    $default  reduce using rule 111 (trans-acc_opt)
+
+    acc-sig        go to state 178
+    trans-acc_opt  go to state 179
+
+
+State 125
+
+  104 trans-label: label •
+
+    $default  reduce using rule 104 (trans-label)
+
+
+State 126
+
+   70 state-conj-2: • checked-state-num '&' checked-state-num
+   71             | • state-conj-2 '&' checked-state-num
+   91 state-num: • "integer"
+   92 checked-state-num: • state-num
+  119 labeled-edge: trans-label • checked-state-num trans-acc_opt
+  120             | trans-label • state-conj-checked trans-acc_opt
+  121 state-conj-checked: • state-conj-2
+
+    "integer"  shift, and go to state 88
+
+    state-conj-2        go to state 122
+    state-num           go to state 123
+    checked-state-num   go to state 180
+    state-conj-checked  go to state 181
+
+
+State 127
+
+   95 state: state-name labeled-edges •
+
+    $default  reduce using rule 95 (state)
+
+
+State 128
+
+   91 state-num: • "integer"
+   92 checked-state-num: • state-num
+   99 label: • '[' label-expr ']'
+  100      | • BDD
+  101      | • '[' error ']'
+  104 trans-label: • label
+  114 labeled-edges: some-labeled-edges •  [error, "--END--", "State:"]
+  116 some-labeled-edges: some-labeled-edges • labeled-edge
+  117                   | some-labeled-edges • incorrectly-unlabeled-edge
+  118 incorrectly-unlabeled-edge: • checked-state-num trans-acc_opt
+  119 labeled-edge: • trans-label checked-state-num trans-acc_opt
+  120             | • trans-label state-conj-checked trans-acc_opt
+
+    "integer"  shift, and go to state 88
+    '['        shift, and go to state 118
+    BDD        shift, and go to state 119
+
+    $default  reduce using rule 114 (labeled-edges)
+
+    state-num                   go to state 123
+    checked-state-num           go to state 182
+    label                       go to state 125
+    trans-label                 go to state 126
+    incorrectly-unlabeled-edge  go to state 183
+    labeled-edge                go to state 184
+
+
+State 129
+
+  115 some-labeled-edges: labeled-edge •
+
+    $default  reduce using rule 115 (some-labeled-edges)
+
+
+State 130
+
+  105 acc-sig: • '{' acc-sets '}'
+  106        | • '{' error '}'
+  111 trans-acc_opt: ε •  [error, "--END--", "State:", "integer", '[', BDD]
+  112              | • acc-sig
+  126 unlabeled-edge: state-conj-checked • trans-acc_opt
+
+    '{'  shift, and go to state 177
+
+    $default  reduce using rule 111 (trans-acc_opt)
+
+    acc-sig        go to state 178
+    trans-acc_opt  go to state 185
+
+
+State 131
+
+   70 state-conj-2: • checked-state-num '&' checked-state-num
+   71             | • state-conj-2 '&' checked-state-num
+   91 state-num: • "integer"
+   92 checked-state-num: • state-num
+   96 state: state-name unlabeled-edges •  [error, "--END--", "State:"]
+   99 label: • '[' label-expr ']'
+  100      | • BDD
+  101      | • '[' error ']'
+  104 trans-label: • label
+  121 state-conj-checked: • state-conj-2
+  123 unlabeled-edges: unlabeled-edges • unlabeled-edge
+  124                | unlabeled-edges • incorrectly-labeled-edge
+  125 unlabeled-edge: • checked-state-num trans-acc_opt
+  126               | • state-conj-checked trans-acc_opt
+  127 incorrectly-labeled-edge: • trans-label unlabeled-edge
+
+    "integer"  shift, and go to state 88
+    '['        shift, and go to state 118
+    BDD        shift, and go to state 119
+
+    $default  reduce using rule 96 (state)
+
+    state-conj-2              go to state 122
+    state-num                 go to state 123
+    checked-state-num         go to state 124
+    label                     go to state 125
+    trans-label               go to state 186
+    state-conj-checked        go to state 130
+    unlabeled-edge            go to state 187
+    incorrectly-labeled-edge  go to state 188
+
+
+State 132
+
+  122 unlabeled-edges: unlabeled-edge •
+
+    $default  reduce using rule 122 (unlabeled-edges)
+
+
+State 133
+
+   73 init-state-conj-2: init-state-conj-2 '&' • state-num
+   91 state-num: • "integer"
+
+    "integer"  shift, and go to state 88
+
+    state-num  go to state 189
+
+
+State 134
+
+   72 init-state-conj-2: state-num '&' • state-num
+   91 state-num: • "integer"
+
+    "integer"  shift, and go to state 88
+
+    state-num  go to state 190
+
+
+State 135
+
+   25 aps: "AP:" "integer" $@3 • ap-names
+   49 ap-names: ε •
+   50         | • ap-names ap-name
+
+    $default  reduce using rule 49 (ap-names)
+
+    ap-names  go to state 191
+
+
+State 136
+
+   34 header-item: "Alias:" "alias name" $@4 • label-expr
+   74 label-expr: • 't'
+   75           | • 'f'
+   76           | • "integer"
+   77           | • "alias name"
+   78           | • '!' label-expr
+   79           | • label-expr '&' label-expr
+   80           | • label-expr '|' label-expr
+   81           | • '(' label-expr ')'
+
+    "alias name"  shift, and go to state 167
+    "integer"     shift, and go to state 168
+    '!'           shift, and go to state 169
+    't'           shift, and go to state 170
+    'f'           shift, and go to state 171
+    '('           shift, and go to state 172
+
+    label-expr  go to state 192
+
+
+State 137
+
+   36 header-item: "Acceptance:" "integer" $@5 • acceptance-cond
+   83 acceptance-cond: • "identifier" '(' acc-set ')'
+   84                | • "identifier" '(' '!' acc-set ')'
+   85                | • '(' acceptance-cond ')'
+   86                | • acceptance-cond '&' acceptance-cond
+   87                | • acceptance-cond '|' acceptance-cond
+   88                | • 't'
+   89                | • 'f'
+
+    "identifier"  shift, and go to state 193
+    't'           shift, and go to state 194
+    'f'           shift, and go to state 195
+    '('           shift, and go to state 196
+
+    acceptance-cond  go to state 197
+
+
+State 138
+
+   16 BOOLEAN: • 't'
+   17        | • 'f'
+   37 header-item: "acc-name:" "identifier" acc-spec •  [error, "States:", "Start:", "AP:", "Alias:", "Acceptance:", "acc-name:", "controllable-AP:", "tool:", "name:", "properties:", "--BODY--", "spot.highlight.edges:", "spot.highlight.states:", "spot.state-player:", "header name"]
+   53 acc-spec: acc-spec • BOOLEAN
+   54         | acc-spec • "integer"
+   55         | acc-spec • "identifier"
+
+    "identifier"  shift, and go to state 198
+    "integer"     shift, and go to state 199
+    't'           shift, and go to state 150
+    'f'           shift, and go to state 151
+
+    $default  reduce using rule 37 (header-item)
+
+    BOOLEAN  go to state 200
+
+
+State 139
+
+   23 controllable-aps: controllable-aps "integer" •
+
+    $default  reduce using rule 23 (controllable-aps)
+
+
+State 140
+
+   15 string_opt: "string" •
+
+    $default  reduce using rule 15 (string_opt)
+
+
+State 141
+
+   38 header-item: "tool:" "string" string_opt •
+
+    $default  reduce using rule 38 (header-item)
+
+
+State 142
+
+   57 properties: properties "identifier" •
+
+    $default  reduce using rule 57 (properties)
+
+
+State 143
+
+   58 properties: properties '!' • "identifier"
+
+    "identifier"  shift, and go to state 201
+
+
+State 144
+
+   42 header-item: "spot.highlight.edges:" $@6 highlight-edges •  [error, "States:", "Start:", "AP:", "Alias:", "Acceptance:", "acc-name:", "controllable-AP:", "tool:", "name:", "properties:", "--BODY--", "spot.highlight.edges:", "spot.highlight.states:", "spot.state-player:", "header name"]
+   60 highlight-edges: highlight-edges • "integer" "integer"
+
+    "integer"  shift, and go to state 202
+
+    $default  reduce using rule 42 (header-item)
+
+
+State 145
+
+   44 header-item: "spot.highlight.states:" $@7 highlight-states •  [error, "States:", "Start:", "AP:", "Alias:", "Acceptance:", "acc-name:", "controllable-AP:", "tool:", "name:", "properties:", "--BODY--", "spot.highlight.edges:", "spot.highlight.states:", "spot.state-player:", "header name"]
+   62 highlight-states: highlight-states • "integer" "integer"
+
+    "integer"  shift, and go to state 203
+
+    $default  reduce using rule 44 (header-item)
+
+
+State 146
+
+   46 header-item: "spot.state-player:" $@8 state-player •  [error, "States:", "Start:", "AP:", "Alias:", "Acceptance:", "acc-name:", "controllable-AP:", "tool:", "name:", "properties:", "--BODY--", "spot.highlight.edges:", "spot.highlight.states:", "spot.state-player:", "header name"]
+   64 state-player: state-player • "integer"
+
+    "integer"  shift, and go to state 204
+
+    $default  reduce using rule 46 (header-item)
+
+
+State 147
+
+   69 header-spec: header-spec "identifier" •
+
+    $default  reduce using rule 69 (header-spec)
+
+
+State 148
+
+   68 header-spec: header-spec "string" •
+
+    $default  reduce using rule 68 (header-spec)
+
+
+State 149
+
+   67 header-spec: header-spec "integer" •
+
+    $default  reduce using rule 67 (header-spec)
+
+
+State 150
+
+   16 BOOLEAN: 't' •
+
+    $default  reduce using rule 16 (BOOLEAN)
+
+
+State 151
+
+   17 BOOLEAN: 'f' •
+
+    $default  reduce using rule 17 (BOOLEAN)
+
+
+State 152
+
+   66 header-spec: header-spec BOOLEAN •
+
+    $default  reduce using rule 66 (header-spec)
+
+
+State 153
+
+  128 dstar: dstar_type "v2" "explicit" dstar_header "---" • dstar_states "end of DSTAR automaton"
+  147 dstar_states: ε •
+  148             | • dstar_states error
+  149             | • dstar_states dstar_state_id dstar_state_accsig dstar_transitions
+
+    $default  reduce using rule 147 (dstar_states)
+
+    dstar_states  go to state 205
+
+
+State 154
+
+  134 dstar_sizes: dstar_sizes error •
+
+    $default  reduce using rule 134 (dstar_sizes)
+
+
+State 155
+
+  136 dstar_sizes: dstar_sizes "States:" • "integer"
+
+    "integer"  shift, and go to state 206
+
+
+State 156
+
+  137 dstar_sizes: dstar_sizes "Start:" • "integer"
+
+    "integer"  shift, and go to state 207
+
+
+State 157
+
+  135 dstar_sizes: dstar_sizes "Acceptance-Pairs:" • "integer"
+
+    "integer"  shift, and go to state 208
+
+
+State 158
+
+  138 dstar_sizes: dstar_sizes aps •
+
+    $default  reduce using rule 138 (dstar_sizes)
+
+
+State 159
+
+  155 pgame_succs: "integer" •
+
+    $default  reduce using rule 155 (pgame_succs)
+
+
+State 160
+
+   14 string_opt: ε •  [';']
+   15           | • "string"
+  156 pgame_succs: pgame_succs • ',' "integer"
+  157 pgame_node: "integer" "integer" "integer" pgame_succs • string_opt
+
+    "string"  shift, and go to state 140
+    ','       shift, and go to state 209
+
+    $default  reduce using rule 14 (string_opt)
+
+    string_opt  go to state 210
+
+
+State 161
+
+  193 lbtt-state: "state number" "integer" lbtt-acc •  ["-1", "state number", "destination number"]
+  195 lbtt-acc: lbtt-acc • "acceptance set"
+
+    "acceptance set"  shift, and go to state 211
+
+    $default  reduce using rule 193 (lbtt-state)
+
+
+State 162
+
+  194 lbtt-acc: ε •
+  195         | • lbtt-acc "acceptance set"
+  198 lbtt-transitions: lbtt-transitions "destination number" • lbtt-acc lbtt-guard
+
+    $default  reduce using rule 194 (lbtt-acc)
+
+    lbtt-acc  go to state 212
+
+
+State 163
+
+  162 nc-states: nc-states ';' nc-state •
+
+    $default  reduce using rule 162 (nc-states)
+
+
+State 164
+
+  167 nc-transition-block: "if" nc-transitions • "fi"
+  174 nc-transitions: nc-transitions • nc-transition
+  183 nc-transition: • ':' ':' "atomic" '{' nc-src-dest '}'
+  184              | • ':' ':' nc-src-dest
+
+    "fi"  shift, and go to state 213
+    ':'   shift, and go to state 214
+
+    nc-transition  go to state 215
+
+
+State 165
+
+  168 nc-transition-block: "do" nc-transitions • "od"
+  174 nc-transitions: nc-transitions • nc-transition
+  183 nc-transition: • ':' ':' "atomic" '{' nc-src-dest '}'
+  184              | • ':' ':' nc-src-dest
+
+    "od"  shift, and go to state 216
+    ':'   shift, and go to state 214
+
+    nc-transition  go to state 215
+
+
+State 166
+
+  101 label: '[' error • ']'
+
+    ']'  shift, and go to state 217
+
+
+State 167
+
+   77 label-expr: "alias name" •
+
+    $default  reduce using rule 77 (label-expr)
+
+
+State 168
+
+   76 label-expr: "integer" •
+
+    $default  reduce using rule 76 (label-expr)
+
+
+State 169
+
+   74 label-expr: • 't'
+   75           | • 'f'
+   76           | • "integer"
+   77           | • "alias name"
+   78           | • '!' label-expr
+   78           | '!' • label-expr
+   79           | • label-expr '&' label-expr
+   80           | • label-expr '|' label-expr
+   81           | • '(' label-expr ')'
+
+    "alias name"  shift, and go to state 167
+    "integer"     shift, and go to state 168
+    '!'           shift, and go to state 169
+    't'           shift, and go to state 170
+    'f'           shift, and go to state 171
+    '('           shift, and go to state 172
+
+    label-expr  go to state 218
+
+
+State 170
+
+   74 label-expr: 't' •
+
+    $default  reduce using rule 74 (label-expr)
+
+
+State 171
+
+   75 label-expr: 'f' •
+
+    $default  reduce using rule 75 (label-expr)
+
+
+State 172
+
+   74 label-expr: • 't'
+   75           | • 'f'
+   76           | • "integer"
+   77           | • "alias name"
+   78           | • '!' label-expr
+   79           | • label-expr '&' label-expr
+   80           | • label-expr '|' label-expr
+   81           | • '(' label-expr ')'
+   81           | '(' • label-expr ')'
+
+    "alias name"  shift, and go to state 167
+    "integer"     shift, and go to state 168
+    '!'           shift, and go to state 169
+    't'           shift, and go to state 170
+    'f'           shift, and go to state 171
+    '('           shift, and go to state 172
+
+    label-expr  go to state 219
+
+
+State 173
+
+   79 label-expr: label-expr • '&' label-expr
+   80           | label-expr • '|' label-expr
+   99 label: '[' label-expr • ']'
+
+    '|'  shift, and go to state 220
+    '&'  shift, and go to state 221
+    ']'  shift, and go to state 222
+
+
+State 174
+
+   14 string_opt: ε •  [error, "--END--", "State:", "integer", '[', BDD, '{']
+   15           | • "string"
+   98 state-name: "State:" state-label_opt checked-state-num • string_opt state-acc_opt
+
+    "string"  shift, and go to state 140
+
+    $default  reduce using rule 14 (string_opt)
+
+    string_opt  go to state 223
+
+
+State 175
+
+   71 state-conj-2: state-conj-2 '&' • checked-state-num
+   91 state-num: • "integer"
+   92 checked-state-num: • state-num
+
+    "integer"  shift, and go to state 88
+
+    state-num          go to state 123
+    checked-state-num  go to state 224
+
+
+State 176
+
+   70 state-conj-2: checked-state-num '&' • checked-state-num
+   91 state-num: • "integer"
+   92 checked-state-num: • state-num
+
+    "integer"  shift, and go to state 88
+
+    state-num          go to state 123
+    checked-state-num  go to state 225
+
+
+State 177
+
+  105 acc-sig: '{' • acc-sets '}'
+  106        | '{' • error '}'
+  107 acc-sets: ε •  ["integer", '}']
+  108         | • acc-sets acc-set
+
+    error  shift, and go to state 226
+
+    "integer"  reduce using rule 107 (acc-sets)
+    '}'        reduce using rule 107 (acc-sets)
+
+    acc-sets  go to state 227
+
+
+State 178
+
+  112 trans-acc_opt: acc-sig •
+
+    $default  reduce using rule 112 (trans-acc_opt)
+
+
+State 179
+
+  125 unlabeled-edge: checked-state-num trans-acc_opt •
+
+    $default  reduce using rule 125 (unlabeled-edge)
+
+
+State 180
+
+   70 state-conj-2: checked-state-num • '&' checked-state-num
+  105 acc-sig: • '{' acc-sets '}'
+  106        | • '{' error '}'
+  111 trans-acc_opt: ε •  [error, "--END--", "State:", "integer", '[', BDD]
+  112              | • acc-sig
+  119 labeled-edge: trans-label checked-state-num • trans-acc_opt
+
+    '&'  shift, and go to state 176
+    '{'  shift, and go to state 177
+
+    $default  reduce using rule 111 (trans-acc_opt)
+
+    acc-sig        go to state 178
+    trans-acc_opt  go to state 228
+
+
+State 181
+
+  105 acc-sig: • '{' acc-sets '}'
+  106        | • '{' error '}'
+  111 trans-acc_opt: ε •  [error, "--END--", "State:", "integer", '[', BDD]
+  112              | • acc-sig
+  120 labeled-edge: trans-label state-conj-checked • trans-acc_opt
+
+    '{'  shift, and go to state 177
+
+    $default  reduce using rule 111 (trans-acc_opt)
+
+    acc-sig        go to state 178
+    trans-acc_opt  go to state 229
+
+
+State 182
+
+  105 acc-sig: • '{' acc-sets '}'
+  106        | • '{' error '}'
+  111 trans-acc_opt: ε •  [error, "--END--", "State:", "integer", '[', BDD]
+  112              | • acc-sig
+  118 incorrectly-unlabeled-edge: checked-state-num • trans-acc_opt
+
+    '{'  shift, and go to state 177
+
+    $default  reduce using rule 111 (trans-acc_opt)
+
+    acc-sig        go to state 178
+    trans-acc_opt  go to state 230
+
+
+State 183
+
+  117 some-labeled-edges: some-labeled-edges incorrectly-unlabeled-edge •
+
+    $default  reduce using rule 117 (some-labeled-edges)
+
+
+State 184
+
+  116 some-labeled-edges: some-labeled-edges labeled-edge •
+
+    $default  reduce using rule 116 (some-labeled-edges)
+
+
+State 185
+
+  126 unlabeled-edge: state-conj-checked trans-acc_opt •
+
+    $default  reduce using rule 126 (unlabeled-edge)
+
+
+State 186
+
+   70 state-conj-2: • checked-state-num '&' checked-state-num
+   71             | • state-conj-2 '&' checked-state-num
+   91 state-num: • "integer"
+   92 checked-state-num: • state-num
+  121 state-conj-checked: • state-conj-2
+  125 unlabeled-edge: • checked-state-num trans-acc_opt
+  126               | • state-conj-checked trans-acc_opt
+  127 incorrectly-labeled-edge: trans-label • unlabeled-edge
+
+    "integer"  shift, and go to state 88
+
+    state-conj-2        go to state 122
+    state-num           go to state 123
+    checked-state-num   go to state 124
+    state-conj-checked  go to state 130
+    unlabeled-edge      go to state 231
+
+
+State 187
+
+  123 unlabeled-edges: unlabeled-edges unlabeled-edge •
+
+    $default  reduce using rule 123 (unlabeled-edges)
+
+
+State 188
+
+  124 unlabeled-edges: unlabeled-edges incorrectly-labeled-edge •
+
+    $default  reduce using rule 124 (unlabeled-edges)
+
+
+State 189
+
+   73 init-state-conj-2: init-state-conj-2 '&' state-num •
+
+    $default  reduce using rule 73 (init-state-conj-2)
+
+
+State 190
+
+   72 init-state-conj-2: state-num '&' state-num •
+
+    $default  reduce using rule 72 (init-state-conj-2)
+
+
+State 191
+
+   25 aps: "AP:" "integer" $@3 ap-names •  [error, "States:", "Start:", "AP:", "Alias:", "Acceptance:", "acc-name:", "controllable-AP:", "tool:", "name:", "properties:", "--BODY--", "spot.highlight.edges:", "spot.highlight.states:", "spot.state-player:", "header name", "Acceptance-Pairs:", "---"]
+   50 ap-names: ap-names • ap-name
+   51 ap-name: • "string"
+
+    "string"  shift, and go to state 232
+
+    $default  reduce using rule 25 (aps)
+
+    ap-name  go to state 233
+
+
+State 192
+
+   34 header-item: "Alias:" "alias name" $@4 label-expr •  [error, "States:", "Start:", "AP:", "Alias:", "Acceptance:", "acc-name:", "controllable-AP:", "tool:", "name:", "properties:", "--BODY--", "spot.highlight.edges:", "spot.highlight.states:", "spot.state-player:", "header name"]
+   79 label-expr: label-expr • '&' label-expr
+   80           | label-expr • '|' label-expr
+
+    '|'  shift, and go to state 220
+    '&'  shift, and go to state 221
+
+    $default  reduce using rule 34 (header-item)
+
+
+State 193
+
+   83 acceptance-cond: "identifier" • '(' acc-set ')'
+   84                | "identifier" • '(' '!' acc-set ')'
+
+    '('  shift, and go to state 234
+
+
+State 194
+
+   88 acceptance-cond: 't' •
+
+    $default  reduce using rule 88 (acceptance-cond)
+
+
+State 195
+
+   89 acceptance-cond: 'f' •
+
+    $default  reduce using rule 89 (acceptance-cond)
+
+
+State 196
+
+   83 acceptance-cond: • "identifier" '(' acc-set ')'
+   84                | • "identifier" '(' '!' acc-set ')'
+   85                | • '(' acceptance-cond ')'
+   85                | '(' • acceptance-cond ')'
+   86                | • acceptance-cond '&' acceptance-cond
+   87                | • acceptance-cond '|' acceptance-cond
+   88                | • 't'
+   89                | • 'f'
+
+    "identifier"  shift, and go to state 193
+    't'           shift, and go to state 194
+    'f'           shift, and go to state 195
+    '('           shift, and go to state 196
+
+    acceptance-cond  go to state 235
+
+
+State 197
+
+   36 header-item: "Acceptance:" "integer" $@5 acceptance-cond •  [error, "States:", "Start:", "AP:", "Alias:", "Acceptance:", "acc-name:", "controllable-AP:", "tool:", "name:", "properties:", "--BODY--", "spot.highlight.edges:", "spot.highlight.states:", "spot.state-player:", "header name"]
+   86 acceptance-cond: acceptance-cond • '&' acceptance-cond
+   87                | acceptance-cond • '|' acceptance-cond
+
+    '|'  shift, and go to state 236
+    '&'  shift, and go to state 237
+
+    $default  reduce using rule 36 (header-item)
+
+
+State 198
+
+   55 acc-spec: acc-spec "identifier" •
+
+    $default  reduce using rule 55 (acc-spec)
+
+
+State 199
+
+   54 acc-spec: acc-spec "integer" •
+
+    $default  reduce using rule 54 (acc-spec)
+
+
+State 200
+
+   53 acc-spec: acc-spec BOOLEAN •
+
+    $default  reduce using rule 53 (acc-spec)
+
+
+State 201
+
+   58 properties: properties '!' "identifier" •
+
+    $default  reduce using rule 58 (properties)
+
+
+State 202
+
+   60 highlight-edges: highlight-edges "integer" • "integer"
+
+    "integer"  shift, and go to state 238
+
+
+State 203
+
+   62 highlight-states: highlight-states "integer" • "integer"
+
+    "integer"  shift, and go to state 239
+
+
+State 204
+
+   64 state-player: state-player "integer" •
+
+    $default  reduce using rule 64 (state-player)
+
+
+State 205
+
+  128 dstar: dstar_type "v2" "explicit" dstar_header "---" dstar_states • "end of DSTAR automaton"
+  139 dstar_state_id: • "State:" "integer" string_opt
+  148 dstar_states: dstar_states • error
+  149             | dstar_states • dstar_state_id dstar_state_accsig dstar_transitions
+
+    error                     shift, and go to state 240
+    "State:"                  shift, and go to state 241
+    "end of DSTAR automaton"  shift, and go to state 242
+
+    dstar_state_id  go to state 243
+
+
+State 206
+
+  136 dstar_sizes: dstar_sizes "States:" "integer" •
+
+    $default  reduce using rule 136 (dstar_sizes)
+
+
+State 207
+
+  137 dstar_sizes: dstar_sizes "Start:" "integer" •
+
+    $default  reduce using rule 137 (dstar_sizes)
+
+
+State 208
+
+  135 dstar_sizes: dstar_sizes "Acceptance-Pairs:" "integer" •
+
+    $default  reduce using rule 135 (dstar_sizes)
+
+
+State 209
+
+  156 pgame_succs: pgame_succs ',' • "integer"
+
+    "integer"  shift, and go to state 244
+
+
+State 210
+
+  157 pgame_node: "integer" "integer" "integer" pgame_succs string_opt •
+
+    $default  reduce using rule 157 (pgame_node)
+
+
+State 211
+
+  195 lbtt-acc: lbtt-acc "acceptance set" •
+
+    $default  reduce using rule 195 (lbtt-acc)
+
+
+State 212
+
+  195 lbtt-acc: lbtt-acc • "acceptance set"
+  196 lbtt-guard: • "string"
+  198 lbtt-transitions: lbtt-transitions "destination number" lbtt-acc • lbtt-guard
+
+    "string"          shift, and go to state 245
+    "acceptance set"  shift, and go to state 211
+
+    lbtt-guard  go to state 246
+
+
+State 213
+
+  167 nc-transition-block: "if" nc-transitions "fi" •
+
+    $default  reduce using rule 167 (nc-transition-block)
+
+
+State 214
+
+  183 nc-transition: ':' • ':' "atomic" '{' nc-src-dest '}'
+  184              | ':' • ':' nc-src-dest
+
+    ':'  shift, and go to state 247
+
+
+State 215
+
+  174 nc-transitions: nc-transitions nc-transition •
+
+    $default  reduce using rule 174 (nc-transitions)
+
+
+State 216
+
+  168 nc-transition-block: "do" nc-transitions "od" •
+
+    $default  reduce using rule 168 (nc-transition-block)
+
+
+State 217
+
+  101 label: '[' error ']' •
+
+    $default  reduce using rule 101 (label)
+
+
+State 218
+
+   78 label-expr: '!' label-expr •  [error, "States:", "Start:", "AP:", "Alias:", "Acceptance:", "acc-name:", "controllable-AP:", "tool:", "name:", "properties:", "--BODY--", "spot.highlight.edges:", "spot.highlight.states:", "spot.state-player:", "header name", '|', '&', ')', ']']
+   79           | label-expr • '&' label-expr
+   80           | label-expr • '|' label-expr
+
+    $default  reduce using rule 78 (label-expr)
+
+    Conflict between rule 78 and token '|' resolved as reduce ('|' < '!').
+    Conflict between rule 78 and token '&' resolved as reduce ('&' < '!').
+
+
+State 219
+
+   79 label-expr: label-expr • '&' label-expr
+   80           | label-expr • '|' label-expr
+   81           | '(' label-expr • ')'
+
+    '|'  shift, and go to state 220
+    '&'  shift, and go to state 221
+    ')'  shift, and go to state 248
+
+
+State 220
+
+   74 label-expr: • 't'
+   75           | • 'f'
+   76           | • "integer"
+   77           | • "alias name"
+   78           | • '!' label-expr
+   79           | • label-expr '&' label-expr
+   80           | • label-expr '|' label-expr
+   80           | label-expr '|' • label-expr
+   81           | • '(' label-expr ')'
+
+    "alias name"  shift, and go to state 167
+    "integer"     shift, and go to state 168
+    '!'           shift, and go to state 169
+    't'           shift, and go to state 170
+    'f'           shift, and go to state 171
+    '('           shift, and go to state 172
+
+    label-expr  go to state 249
+
+
+State 221
+
+   74 label-expr: • 't'
+   75           | • 'f'
+   76           | • "integer"
+   77           | • "alias name"
+   78           | • '!' label-expr
+   79           | • label-expr '&' label-expr
+   79           | label-expr '&' • label-expr
+   80           | • label-expr '|' label-expr
+   81           | • '(' label-expr ')'
+
+    "alias name"  shift, and go to state 167
+    "integer"     shift, and go to state 168
+    '!'           shift, and go to state 169
+    't'           shift, and go to state 170
+    'f'           shift, and go to state 171
+    '('           shift, and go to state 172
+
+    label-expr  go to state 250
+
+
+State 222
+
+   99 label: '[' label-expr ']' •
+
+    $default  reduce using rule 99 (label)
+
+
+State 223
+
+   98 state-name: "State:" state-label_opt checked-state-num string_opt • state-acc_opt
+  105 acc-sig: • '{' acc-sets '}'
+  106        | • '{' error '}'
+  109 state-acc_opt: ε •  [error, "--END--", "State:", "integer", '[', BDD]
+  110              | • acc-sig
+
+    '{'  shift, and go to state 177
+
+    $default  reduce using rule 109 (state-acc_opt)
+
+    acc-sig        go to state 251
+    state-acc_opt  go to state 252
+
+
+State 224
+
+   71 state-conj-2: state-conj-2 '&' checked-state-num •
+
+    $default  reduce using rule 71 (state-conj-2)
+
+
+State 225
+
+   70 state-conj-2: checked-state-num '&' checked-state-num •
+
+    $default  reduce using rule 70 (state-conj-2)
+
+
+State 226
+
+  106 acc-sig: '{' error • '}'
+
+    '}'  shift, and go to state 253
+
+
+State 227
+
+   82 acc-set: • "integer"
+  105 acc-sig: '{' acc-sets • '}'
+  108 acc-sets: acc-sets • acc-set
+
+    "integer"  shift, and go to state 254
+    '}'        shift, and go to state 255
+
+    acc-set  go to state 256
+
+
+State 228
+
+  119 labeled-edge: trans-label checked-state-num trans-acc_opt •
+
+    $default  reduce using rule 119 (labeled-edge)
+
+
+State 229
+
+  120 labeled-edge: trans-label state-conj-checked trans-acc_opt •
+
+    $default  reduce using rule 120 (labeled-edge)
+
+
+State 230
+
+  118 incorrectly-unlabeled-edge: checked-state-num trans-acc_opt •
+
+    $default  reduce using rule 118 (incorrectly-unlabeled-edge)
+
+
+State 231
+
+  127 incorrectly-labeled-edge: trans-label unlabeled-edge •
+
+    $default  reduce using rule 127 (incorrectly-labeled-edge)
+
+
+State 232
+
+   51 ap-name: "string" •
+
+    $default  reduce using rule 51 (ap-name)
+
+
+State 233
+
+   50 ap-names: ap-names ap-name •
+
+    $default  reduce using rule 50 (ap-names)
+
+
+State 234
+
+   82 acc-set: • "integer"
+   83 acceptance-cond: "identifier" '(' • acc-set ')'
+   84                | "identifier" '(' • '!' acc-set ')'
+
+    "integer"  shift, and go to state 254
+    '!'        shift, and go to state 257
+
+    acc-set  go to state 258
+
+
+State 235
+
+   85 acceptance-cond: '(' acceptance-cond • ')'
+   86                | acceptance-cond • '&' acceptance-cond
+   87                | acceptance-cond • '|' acceptance-cond
+
+    '|'  shift, and go to state 236
+    '&'  shift, and go to state 237
+    ')'  shift, and go to state 259
+
+
+State 236
+
+   83 acceptance-cond: • "identifier" '(' acc-set ')'
+   84                | • "identifier" '(' '!' acc-set ')'
+   85                | • '(' acceptance-cond ')'
+   86                | • acceptance-cond '&' acceptance-cond
+   87                | • acceptance-cond '|' acceptance-cond
+   87                | acceptance-cond '|' • acceptance-cond
+   88                | • 't'
+   89                | • 'f'
+
+    "identifier"  shift, and go to state 193
+    't'           shift, and go to state 194
+    'f'           shift, and go to state 195
+    '('           shift, and go to state 196
+
+    acceptance-cond  go to state 260
+
+
+State 237
+
+   83 acceptance-cond: • "identifier" '(' acc-set ')'
+   84                | • "identifier" '(' '!' acc-set ')'
+   85                | • '(' acceptance-cond ')'
+   86                | • acceptance-cond '&' acceptance-cond
+   86                | acceptance-cond '&' • acceptance-cond
+   87                | • acceptance-cond '|' acceptance-cond
+   88                | • 't'
+   89                | • 'f'
+
+    "identifier"  shift, and go to state 193
+    't'           shift, and go to state 194
+    'f'           shift, and go to state 195
+    '('           shift, and go to state 196
+
+    acceptance-cond  go to state 261
+
+
+State 238
+
+   60 highlight-edges: highlight-edges "integer" "integer" •
+
+    $default  reduce using rule 60 (highlight-edges)
+
+
+State 239
+
+   62 highlight-states: highlight-states "integer" "integer" •
+
+    $default  reduce using rule 62 (highlight-states)
+
+
+State 240
+
+  148 dstar_states: dstar_states error •
+
+    $default  reduce using rule 148 (dstar_states)
+
+
+State 241
+
+  139 dstar_state_id: "State:" • "integer" string_opt
+
+    "integer"  shift, and go to state 262
+
+
+State 242
+
+  128 dstar: dstar_type "v2" "explicit" dstar_header "---" dstar_states "end of DSTAR automaton" •
+
+    $default  reduce using rule 128 (dstar)
+
+
+State 243
+
+  144 dstar_state_accsig: • "Acc-Sig:" dstar_accsigs
+  149 dstar_states: dstar_states dstar_state_id • dstar_state_accsig dstar_transitions
+
+    "Acc-Sig:"  shift, and go to state 263
+
+    dstar_state_accsig  go to state 264
+
+
+State 244
+
+  156 pgame_succs: pgame_succs ',' "integer" •
+
+    $default  reduce using rule 156 (pgame_succs)
+
+
+State 245
+
+  196 lbtt-guard: "string" •
+
+    $default  reduce using rule 196 (lbtt-guard)
+
+
+State 246
+
+  198 lbtt-transitions: lbtt-transitions "destination number" lbtt-acc lbtt-guard •
+
+    $default  reduce using rule 198 (lbtt-transitions)
+
+
+State 247
+
+  175 nc-formula-or-ident: • "boolean formula"
+  176                    | • "identifier"
+  177 nc-formula: • nc-formula-or-ident
+  178           | • "false"
+  182 nc-src-dest: • nc-formula nc-opt-dest
+  183 nc-transition: ':' ':' • "atomic" '{' nc-src-dest '}'
+  184              | ':' ':' • nc-src-dest
+
+    "identifier"       shift, and go to state 265
+    "false"            shift, and go to state 266
+    "atomic"           shift, and go to state 267
+    "boolean formula"  shift, and go to state 268
+
+    nc-formula-or-ident  go to state 269
+    nc-formula           go to state 270
+    nc-src-dest          go to state 271
+
+
+State 248
+
+   81 label-expr: '(' label-expr ')' •
+
+    $default  reduce using rule 81 (label-expr)
+
+
+State 249
+
+   79 label-expr: label-expr • '&' label-expr
+   80           | label-expr • '|' label-expr
+   80           | label-expr '|' label-expr •  [error, "States:", "Start:", "AP:", "Alias:", "Acceptance:", "acc-name:", "controllable-AP:", "tool:", "name:", "properties:", "--BODY--", "spot.highlight.edges:", "spot.highlight.states:", "spot.state-player:", "header name", '|', ')', ']']
+
+    '&'  shift, and go to state 221
+
+    $default  reduce using rule 80 (label-expr)
+
+    Conflict between rule 80 and token '|' resolved as reduce (%left '|').
+    Conflict between rule 80 and token '&' resolved as shift ('|' < '&').
+
+
+State 250
+
+   79 label-expr: label-expr • '&' label-expr
+   79           | label-expr '&' label-expr •  [error, "States:", "Start:", "AP:", "Alias:", "Acceptance:", "acc-name:", "controllable-AP:", "tool:", "name:", "properties:", "--BODY--", "spot.highlight.edges:", "spot.highlight.states:", "spot.state-player:", "header name", '|', '&', ')', ']']
+   80           | label-expr • '|' label-expr
+
+    $default  reduce using rule 79 (label-expr)
+
+    Conflict between rule 79 and token '|' resolved as reduce ('|' < '&').
+    Conflict between rule 79 and token '&' resolved as reduce (%left '&').
+
+
+State 251
+
+  110 state-acc_opt: acc-sig •
+
+    $default  reduce using rule 110 (state-acc_opt)
+
+
+State 252
+
+   98 state-name: "State:" state-label_opt checked-state-num string_opt state-acc_opt •
+
+    $default  reduce using rule 98 (state-name)
+
+
+State 253
+
+  106 acc-sig: '{' error '}' •
+
+    $default  reduce using rule 106 (acc-sig)
+
+
+State 254
+
+   82 acc-set: "integer" •
+
+    $default  reduce using rule 82 (acc-set)
+
+
+State 255
+
+  105 acc-sig: '{' acc-sets '}' •
+
+    $default  reduce using rule 105 (acc-sig)
+
+
+State 256
+
+  108 acc-sets: acc-sets acc-set •
+
+    $default  reduce using rule 108 (acc-sets)
+
+
+State 257
+
+   82 acc-set: • "integer"
+   84 acceptance-cond: "identifier" '(' '!' • acc-set ')'
+
+    "integer"  shift, and go to state 254
+
+    acc-set  go to state 272
+
+
+State 258
+
+   83 acceptance-cond: "identifier" '(' acc-set • ')'
+
+    ')'  shift, and go to state 273
+
+
+State 259
+
+   85 acceptance-cond: '(' acceptance-cond ')' •
+
+    $default  reduce using rule 85 (acceptance-cond)
+
+
+State 260
+
+   86 acceptance-cond: acceptance-cond • '&' acceptance-cond
+   87                | acceptance-cond • '|' acceptance-cond
+   87                | acceptance-cond '|' acceptance-cond •  [error, "States:", "Start:", "AP:", "Alias:", "Acceptance:", "acc-name:", "controllable-AP:", "tool:", "name:", "properties:", "--BODY--", "spot.highlight.edges:", "spot.highlight.states:", "spot.state-player:", "header name", '|', ')']
+
+    '&'  shift, and go to state 237
+
+    $default  reduce using rule 87 (acceptance-cond)
+
+    Conflict between rule 87 and token '|' resolved as reduce (%left '|').
+    Conflict between rule 87 and token '&' resolved as shift ('|' < '&').
+
+
+State 261
+
+   86 acceptance-cond: acceptance-cond • '&' acceptance-cond
+   86                | acceptance-cond '&' acceptance-cond •  [error, "States:", "Start:", "AP:", "Alias:", "Acceptance:", "acc-name:", "controllable-AP:", "tool:", "name:", "properties:", "--BODY--", "spot.highlight.edges:", "spot.highlight.states:", "spot.state-player:", "header name", '|', '&', ')']
+   87                | acceptance-cond • '|' acceptance-cond
+
+    $default  reduce using rule 86 (acceptance-cond)
+
+    Conflict between rule 86 and token '|' resolved as reduce ('|' < '&').
+    Conflict between rule 86 and token '&' resolved as reduce (%left '&').
+
+
+State 262
+
+   14 string_opt: ε •  ["Acc-Sig:"]
+   15           | • "string"
+  139 dstar_state_id: "State:" "integer" • string_opt
+
+    "string"  shift, and go to state 140
+
+    $default  reduce using rule 14 (string_opt)
+
+    string_opt  go to state 274
+
+
+State 263
+
+  142 dstar_accsigs: ε •
+  143              | • dstar_accsigs sign "integer"
+  144 dstar_state_accsig: "Acc-Sig:" • dstar_accsigs
+
+    $default  reduce using rule 142 (dstar_accsigs)
+
+    dstar_accsigs  go to state 275
+
+
+State 264
+
+  145 dstar_transitions: ε •
+  146                  | • dstar_transitions "integer"
+  149 dstar_states: dstar_states dstar_state_id dstar_state_accsig • dstar_transitions
+
+    $default  reduce using rule 145 (dstar_transitions)
+
+    dstar_transitions  go to state 276
+
+
+State 265
+
+  176 nc-formula-or-ident: "identifier" •
+
+    $default  reduce using rule 176 (nc-formula-or-ident)
+
+
+State 266
+
+  178 nc-formula: "false" •
+
+    $default  reduce using rule 178 (nc-formula)
+
+
+State 267
+
+  183 nc-transition: ':' ':' "atomic" • '{' nc-src-dest '}'
+
+    '{'  shift, and go to state 277
+
+
+State 268
+
+  175 nc-formula-or-ident: "boolean formula" •
+
+    $default  reduce using rule 175 (nc-formula-or-ident)
+
+
+State 269
+
+  177 nc-formula: nc-formula-or-ident •
+
+    $default  reduce using rule 177 (nc-formula)
+
+
+State 270
+
+  179 nc-opt-dest: ε •  ["fi", "od", '}', ':']
+  180            | • "->" "goto" "identifier"
+  181            | • "->" "assert" "boolean formula"
+  182 nc-src-dest: nc-formula • nc-opt-dest
+
+    "->"  shift, and go to state 278
+
+    $default  reduce using rule 179 (nc-opt-dest)
+
+    nc-opt-dest  go to state 279
+
+
+State 271
+
+  184 nc-transition: ':' ':' nc-src-dest •
+
+    $default  reduce using rule 184 (nc-transition)
+
+
+State 272
+
+   84 acceptance-cond: "identifier" '(' '!' acc-set • ')'
+
+    ')'  shift, and go to state 280
+
+
+State 273
+
+   83 acceptance-cond: "identifier" '(' acc-set ')' •
+
+    $default  reduce using rule 83 (acceptance-cond)
+
+
+State 274
+
+  139 dstar_state_id: "State:" "integer" string_opt •
+
+    $default  reduce using rule 139 (dstar_state_id)
+
+
+State 275
+
+  140 sign: • '+'
+  141     | • '-'
+  143 dstar_accsigs: dstar_accsigs • sign "integer"
+  144 dstar_state_accsig: "Acc-Sig:" dstar_accsigs •  [error, "State:", "integer", "end of DSTAR automaton"]
+
+    '+'  shift, and go to state 281
+    '-'  shift, and go to state 282
+
+    $default  reduce using rule 144 (dstar_state_accsig)
+
+    sign  go to state 283
+
+
+State 276
+
+  146 dstar_transitions: dstar_transitions • "integer"
+  149 dstar_states: dstar_states dstar_state_id dstar_state_accsig dstar_transitions •  [error, "State:", "end of DSTAR automaton"]
+
+    "integer"  shift, and go to state 284
+
+    $default  reduce using rule 149 (dstar_states)
+
+
+State 277
+
+  175 nc-formula-or-ident: • "boolean formula"
+  176                    | • "identifier"
+  177 nc-formula: • nc-formula-or-ident
+  178           | • "false"
+  182 nc-src-dest: • nc-formula nc-opt-dest
+  183 nc-transition: ':' ':' "atomic" '{' • nc-src-dest '}'
+
+    "identifier"       shift, and go to state 265
+    "false"            shift, and go to state 266
+    "boolean formula"  shift, and go to state 268
+
+    nc-formula-or-ident  go to state 269
+    nc-formula           go to state 270
+    nc-src-dest          go to state 285
+
+
+State 278
+
+  180 nc-opt-dest: "->" • "goto" "identifier"
+  181            | "->" • "assert" "boolean formula"
+
+    "goto"    shift, and go to state 286
+    "assert"  shift, and go to state 287
+
+
+State 279
+
+  182 nc-src-dest: nc-formula nc-opt-dest •
+
+    $default  reduce using rule 182 (nc-src-dest)
+
+
+State 280
+
+   84 acceptance-cond: "identifier" '(' '!' acc-set ')' •
+
+    $default  reduce using rule 84 (acceptance-cond)
+
+
+State 281
+
+  140 sign: '+' •
+
+    $default  reduce using rule 140 (sign)
+
+
+State 282
+
+  141 sign: '-' •
+
+    $default  reduce using rule 141 (sign)
+
+
+State 283
+
+  143 dstar_accsigs: dstar_accsigs sign • "integer"
+
+    "integer"  shift, and go to state 288
+
+
+State 284
+
+  146 dstar_transitions: dstar_transitions "integer" •
+
+    $default  reduce using rule 146 (dstar_transitions)
+
+
+State 285
+
+  183 nc-transition: ':' ':' "atomic" '{' nc-src-dest • '}'
+
+    '}'  shift, and go to state 289
+
+
+State 286
+
+  180 nc-opt-dest: "->" "goto" • "identifier"
+
+    "identifier"  shift, and go to state 290
+
+
+State 287
+
+  181 nc-opt-dest: "->" "assert" • "boolean formula"
+
+    "boolean formula"  shift, and go to state 291
+
+
+State 288
+
+  143 dstar_accsigs: dstar_accsigs sign "integer" •
+
+    $default  reduce using rule 143 (dstar_accsigs)
+
+
+State 289
+
+  183 nc-transition: ':' ':' "atomic" '{' nc-src-dest '}' •
+
+    $default  reduce using rule 183 (nc-transition)
+
+
+State 290
+
+  180 nc-opt-dest: "->" "goto" "identifier" •
+
+    $default  reduce using rule 180 (nc-opt-dest)
+
+
+State 291
+
+  181 nc-opt-dest: "->" "assert" "boolean formula" •
+
+    $default  reduce using rule 181 (nc-opt-dest)
