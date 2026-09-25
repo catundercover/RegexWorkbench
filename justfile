@@ -13,6 +13,8 @@ lint_build_dir := "build/lint"
 sanitizer_build_dir := "build/sanitizers"
 coverage_build_dir := "build/coverage"
 web_port := "8080"
+deploy_branch := "web-release"
+deploy_worktree := ".deploy"
 
 # List the available project commands.
 default:
@@ -287,3 +289,27 @@ clean-web:
 
 # Rebuild native and WebAssembly debug applications from clean recipe-managed trees.
 rebuild: clean build-native build-web
+
+# Publish the release web build to the dedicated GitHub branch.
+deploy-web: build-web-release
+    @git diff --quiet || { echo "Commit or stash your changes first."; exit 1; }
+    @test -d {{ deploy_worktree }} || git worktree add {{ deploy_worktree }} {{ deploy_branch }}
+    git -C {{ deploy_worktree }} fetch origin {{ deploy_branch }}
+    git -C {{ deploy_worktree }} reset --hard origin/{{ deploy_branch }}
+    find {{ deploy_worktree }} -mindepth 1 -maxdepth 1 \
+        ! -name '.git' ! -name '.nojekyll' ! -name 'README.md' -exec rm -rf {} +
+    cp {{ web_release_build_dir }}/index.html \
+       {{ web_release_build_dir }}/index.js \
+       {{ web_release_build_dir }}/index.wasm \
+       {{ web_release_build_dir }}/operation-worker.js \
+       {{ web_release_build_dir }}/operation-worker.wasm \
+       {{ web_release_build_dir }}/style.css \
+       {{ deploy_worktree }}/
+    git -C {{ deploy_worktree }} add -A
+    git -C {{ deploy_worktree }} commit -m "Deploy web release from $(git rev-parse --short HEAD)" \
+        || echo "No changes to deploy."
+    git -C {{ deploy_worktree }} push origin {{ deploy_branch }}
+
+# Remove the deployment worktree.
+deploy-web-clean:
+    -git worktree remove {{ deploy_worktree }} --force

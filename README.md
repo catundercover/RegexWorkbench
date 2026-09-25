@@ -1,6 +1,6 @@
 # RegexThesis
 
-RegexThesis provides **Automata Workbench**, an interactive regular-expression application written
+RegexThesis provides **Regex Workbench**, an interactive regular-expression application written
 in C++20. It supports both finite-word and omega regular expressions, constructs and lays out
 finite or Büchi automata, rewrites expressions, and compares their languages. The same application
 runs as a native Linux program and as a fully client-side WebAssembly application.
@@ -192,6 +192,9 @@ your distribution, then use `just doctor-native` to check the discoverable prere
 Activate the Emscripten SDK environment before configuring. `just doctor-web` checks the toolchain
 and the required prebuilt Graphviz archives.
 
+### Online access
+ Alternatively, you can access the application online at https://catundercover.github.io/RegexWorkbench/
+
 ### Repository and fetched dependencies
 
 - Dear ImGui, SDL/OpenGL backends, and fonts are stored in `external/imgui`.
@@ -248,6 +251,9 @@ Keep them in the same directory. The host should serve `.wasm` files as `applica
 SharedArrayBuffer and cross-origin-isolation headers are not required because the application uses
 an isolated Web Worker instead of pthreads. `just package-web` creates
 `build/regex-thesis-web.tar.gz` containing the production files.
+
+To publish the same artifacts to GitHub Pages through a dedicated `web-release` branch, see
+[`docs/web-release.md`](docs/web-release.md).
 
 To use a different Emscripten Graphviz prefix:
 

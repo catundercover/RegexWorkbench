@@ -33,3 +33,6 @@
 *.swp
 *.swo
 *~
+
+# Deployment worktree for the web release branch
+/.deploy/
