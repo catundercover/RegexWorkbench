@@ -1,0 +1,56 @@
+<!-- Hosts the Emscripten canvas and reports runtime loading status. -->
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Automata Workbench</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+<div id="status">Loading Automata Workbench...</div>
+
+<script>
+    var Module = {
+        /** Returns the canvas used by the Emscripten runtime. */
+        canvas: (function() {
+            return document.getElementById('canvas');
+        })(),
+        /** Routes standard application output to the browser console. */
+        print: function(text) {
+            console.log(text);
+        },
+        /** Routes application diagnostics to the browser console. */
+        printErr: function(text) {
+            console.error(text);
+        },
+        /** Updates or hides the loading status overlay. */
+        setStatus: function(text) {
+            var status = document.getElementById('status');
+
+            if (!status) {
+                return;
+            }
+
+            if (!text) {
+                status.style.display = 'none';
+            } else {
+                status.textContent = text;
+                status.style.display = 'block';
+            }
+        },
+        /** Hides the loading overlay after the WASM runtime is ready. */
+        onRuntimeInitialized: function() {
+            var status = document.getElementById('status');
+
+            if (status) {
+                status.style.display = 'none';
+            }
+        }
+    };
+</script>
+
+{{{ SCRIPT }}}
+</body>
+</html>

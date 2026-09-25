@@ -1,0 +1,3 @@
+[submodule "external/spot/source"]
+	path = external/spot/source
+	url = https://gitlab.lrde.epita.fr/spot/spot.git

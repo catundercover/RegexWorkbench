@@ -1,0 +1,35 @@
+# CMake build trees
+/build/
+/build-*/
+/cmake-build-*/
+/compile_commands.json
+/CMakeUserPresets.json
+/external/spot/build-native/
+/external/spot/build-wasm/
+/external/spot/native/
+/external/spot/wasm/
+
+/thesis/build/*
+!/thesis/build/main.pdf
+
+# Accidental root-level Emscripten output
+/index.data
+/index.html
+/index.js
+/index.js.map
+/index.wasm
+/index.wasm.map
+/operation-worker.js
+/operation-worker.js.map
+/operation-worker.wasm
+/operation-worker.wasm.map
+/style.css
+
+# Local editor and operating-system files
+/.cache/
+/.clangd/
+/.vscode/
+.DS_Store
+*.swp
+*.swo
+*~

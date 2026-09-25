@@ -1,0 +1,24 @@
+# Enables strict correctness, portability, and readability checks.
+---
+Checks: >
+  -*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-exception-escape,
+  clang-analyzer-*,
+  performance-*,
+  portability-*,
+  -portability-avoid-pragma-once,
+  modernize-use-nullptr,
+  modernize-use-override,
+  modernize-use-using,
+  readability-const-return-type,
+  readability-container-size-empty,
+  readability-inconsistent-declaration-parameter-name,
+  readability-make-member-function-const,
+  readability-redundant-*
+WarningsAsErrors: '*'
+HeaderFilterRegex: '(^|/)(src|tests)/'
+ExcludeHeaderFilterRegex: '(^|/)(external|build|cmake-build-)/'
+FormatStyle: file
+...

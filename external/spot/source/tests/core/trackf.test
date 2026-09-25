@@ -1,0 +1,65 @@
+#!/bin/sh
+# -*- coding: utf-8 -*-
+# Copyright (C) by the Spot authors, see the AUTHORS file for details.
+#
+# This file is part of Spot, a model checking library.
+#
+# Spot is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# Spot is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+# License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+. ./defs
+
+set -e
+
+ltl2tgba -D 'Ga | Gb | Gc' |
+  autfilt --track-formula='Ga | Gb | Gc' > out
+cat >exp <<EOF
+HOA: v1
+name: "Ga | Gb | Gc"
+States: 7
+Start: 0
+AP: 3 "a" "b" "c"
+acc-name: all
+Acceptance: 0 t
+properties: trans-labels explicit-labels state-acc deterministic
+properties: stutter-invariant weak
+--BODY--
+State: 0 "Ga | Gb | Gc"
+[!0&!1&2] 1
+[!0&1&!2] 2
+[!0&1&2] 3
+[0&!1&!2] 4
+[0&!1&2] 5
+[0&1&!2] 6
+[0&1&2] 0
+State: 1 "Gc"
+[2] 1
+State: 2 "Gb"
+[1] 2
+State: 3 "Gb | Gc"
+[!1&2] 1
+[1&!2] 2
+[1&2] 3
+State: 4 "Ga"
+[0] 4
+State: 5 "Ga | Gc"
+[!0&2] 1
+[0&!2] 4
+[0&2] 5
+State: 6 "Ga | Gb"
+[!0&1] 2
+[0&!1] 4
+[0&1] 6
+--END--
+EOF
+diff out exp

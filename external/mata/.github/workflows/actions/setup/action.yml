@@ -1,0 +1,18 @@
+name: Setup environment
+description: Setup environment for running workflows.
+inputs:
+  os:
+    description: "Operating system to run on"
+    required: false
+    default: ubuntu-latest
+runs:
+  using: "composite"
+  steps:
+    - name: Building MacOS dependencies
+      if: ${{ inputs.os == 'macos-latest' }}
+      shell: sh
+      run: brew install lcov gcovr automake
+    - name: Building Unix dependencies
+      if: ${{ inputs.os == 'ubuntu-latest' }}
+      shell: sh
+      run: sudo apt install -y build-essential lcov gcovr xdg-utils
