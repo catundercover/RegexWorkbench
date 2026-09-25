@@ -141,6 +141,14 @@ empty word as `ε`, omega mode uses Spot and displays witnesses as `prefix(cycle
 
 ## Quick start
 
+### Online Access
+
+You can access the workbench at https://catundercover.github.io/RegexWorkbench/
+
+### Building and running
+
+Or you can build and run the project on your own machine.
+
 [`just`](https://github.com/casey/just) is the recommended command runner. On a fresh checkout,
 initialize the Spot submodule and build the project-local native Spot installation first:
 
@@ -191,9 +199,6 @@ your distribution, then use `just doctor-native` to check the discoverable prere
 
 Activate the Emscripten SDK environment before configuring. `just doctor-web` checks the toolchain
 and the required prebuilt Graphviz archives.
-
-### Online access
- Alternatively, you can access the application online at https://catundercover.github.io/RegexWorkbench/
 
 ### Repository and fetched dependencies
 
